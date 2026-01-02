@@ -13,7 +13,7 @@ SoundboardApp/
 │   └── AudioDevice.cs          # Audio device info
 ├── Services/                    # Business logic
 │   ├── Interfaces/             # Service contracts
-│   ├── ConfigService.cs        # JSON persistence, sound import
+│   ├── ConfigService.cs        # JSON persistence
 │   ├── DeviceEnumerator.cs     # WASAPI device listing
 │   ├── SoundLibrary.cs         # Audio decode/cache
 │   ├── AudioEngine.cs          # Dual-output playback
@@ -125,10 +125,10 @@ When user clicks "Set" to assign a hotkey:
 
 ## Key Design Decisions
 
-### 1. Decode on Import
-Audio files are decoded to float32/stereo/48kHz when imported (via SoundLibrary). This ensures:
+### 1. Decode on First Load
+Audio files are decoded to float32/stereo/48kHz on first access (via SoundLibrary). Files are referenced by absolute path and cached in memory. This ensures:
 - Consistent format for mixing
-- No decode latency during playback
+- No decode latency during playback (after first load)
 - Memory tradeoff acceptable for 16 short clips
 
 ### 2. Voice Pairs

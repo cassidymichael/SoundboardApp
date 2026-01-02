@@ -11,7 +11,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
   - **Inject output**: Voicemeeter AUX Input (routes into microphone/calls)
   - **Monitor output**: System Default (user hears playback)
 - Sound behavior: default is layering (simultaneous), configurable per-tile
-- Portable configuration: sounds copied into app's data directory
+- Configuration persists to AppData; sounds referenced by absolute path
 - Close to tray; quit via tray menu
 
 **Target Environment:**
@@ -69,7 +69,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 
 ### Components
 1. **UI Layer (WPF)** - Tile grid, editor panel, device dropdowns
-2. **ConfigService** - JSON config, sound import/copy
+2. **ConfigService** - JSON config persistence
 3. **HotkeyService** - Global hotkey registration
 4. **AudioEngine** - Dual output buses (Monitor + Inject)
 5. **SoundLibrary** - Decode and cache PCM buffers
@@ -84,22 +84,16 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 
 ## 6. Configuration
 
-**Location:** `%AppData%\Soundboard\`
+**Location:** `%AppData%\Soundboard\config.json`
 
-```
-config.json
-sounds/
-  tile_00/mysound.wav
-  tile_01/another.mp3
-  ...
-```
-
-**config.json contents:**
+**Contents:**
 - App version
 - Device IDs (monitor, inject)
 - Master volumes
 - Hotkey bindings (16 tiles + stop all)
-- Tile configs (name, file path, volume, stopOthers, protected)
+- Tile configs (name, absolute file path, volume, stopOthers, protected)
+
+Note: Sound files are referenced by absolute path (not copied). User manages their own sound file organization.
 
 ---
 

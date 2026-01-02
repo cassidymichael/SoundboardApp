@@ -30,8 +30,9 @@ SoundboardApp/
 - `Models/TileConfig.cs` - Per-tile settings (sound, hotkey, volume, behavior)
 
 ## Architecture
-- Config persists to `%AppData%\Soundboard\` (JSON + copied sound files)
-- Audio decoded on import to float32/stereo/48kHz, cached in memory
+- Config persists to `%AppData%\Soundboard\config.json`
+- Sound files referenced by absolute path (not copied)
+- Audio decoded on first load to float32/stereo/48kHz, cached in memory
 - Max 4 simultaneous voices, 15ms fade-out to prevent clicks
 - Close minimizes to tray; Exit via tray menu
 
