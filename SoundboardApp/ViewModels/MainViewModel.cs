@@ -51,7 +51,7 @@ public partial class MainViewModel : ObservableObject
     private double _statusOpacity = 0;
 
     [ObservableProperty]
-    private string _learnHotkeyButtonText = "Learn";
+    private string _learnHotkeyButtonText = "Set";
 
     public MainViewModel(
         IConfigService configService,
@@ -162,14 +162,15 @@ public partial class MainViewModel : ObservableObject
         if (_isLearningHotkey)
         {
             _isLearningHotkey = false;
-            LearnHotkeyButtonText = "Learn";
+            LearnHotkeyButtonText = "Set";
+            _hotkeyService.ResumeAll();
         }
     }
 
     private void OnTilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         // Save config when tile properties that persist are changed
-        if (e.PropertyName is "Name" or "VolumePercent" or "AllowOverlap")
+        if (e.PropertyName is "Name" or "VolumePercent" or "StopOthers" or "Protected")
         {
             // Restart debounce timer
             _saveDebounceTimer.Stop();
@@ -232,18 +233,17 @@ public partial class MainViewModel : ObservableObject
         {
             // Cancel learning
             _isLearningHotkey = false;
-            LearnHotkeyButtonText = "Learn";
+            LearnHotkeyButtonText = "Set";
+            _hotkeyService.ResumeAll();
             ShowStatus("Hotkey learning cancelled");
         }
         else
         {
-            // Start learning
+            // Start learning - suspend all hotkeys so we can capture any key
             _isLearningHotkey = true;
             LearnHotkeyButtonText = "Cancel";
+            _hotkeyService.SuspendAll();
             ShowStatus("Press a key to assign...");
-
-            // Hook into keyboard events via MainWindow
-            // This will be handled by the Window's PreviewKeyDown
         }
     }
 
@@ -260,7 +260,30 @@ public partial class MainViewModel : ObservableObject
 
         var binding = new HotkeyBinding(key, modifiers);
 
-        // Unregister old hotkey
+        // Check if another tile already has this hotkey - if so, unbind it
+        int? conflictingTileIndex = null;
+        foreach (var tile in Tiles)
+        {
+            if (tile.Index != SelectedTile.Index &&
+                tile.Config.Hotkey != null &&
+                tile.Config.Hotkey.Key == key &&
+                tile.Config.Hotkey.Modifiers == modifiers)
+            {
+                conflictingTileIndex = tile.Index;
+                tile.SetHotkey(null);
+            }
+        }
+
+        // Resume hotkeys
+        _hotkeyService.ResumeAll();
+
+        // Unregister the conflicting tile's hotkey (it was re-registered by ResumeAll)
+        if (conflictingTileIndex.HasValue)
+        {
+            _hotkeyService.UnregisterTileHotkey(conflictingTileIndex.Value);
+        }
+
+        // Unregister old hotkey for this tile
         _hotkeyService.UnregisterTileHotkey(SelectedTile.Index);
 
         // Register new hotkey
@@ -272,7 +295,18 @@ public partial class MainViewModel : ObservableObject
         }
 
         _isLearningHotkey = false;
-        LearnHotkeyButtonText = "Learn";
+        LearnHotkeyButtonText = "Set";
+    }
+
+    [RelayCommand]
+    private void ClearHotkey()
+    {
+        if (SelectedTile == null) return;
+
+        _hotkeyService.UnregisterTileHotkey(SelectedTile.Index);
+        SelectedTile.SetHotkey(null);
+        _ = _configService.SaveAsync();
+        ShowStatus("Hotkey cleared");
     }
 
     [RelayCommand]
@@ -305,7 +339,7 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        _audioEngine.Play(tileIndex, buffer, tile.Volume, tile.AllowOverlap);
+        _audioEngine.Play(tileIndex, buffer, tile.Volume, tile.StopOthers, tile.Protected);
     }
 
     private void OnTileStarted(object? sender, int tileIndex)

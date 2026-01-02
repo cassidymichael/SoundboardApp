@@ -108,6 +108,30 @@ public class HotkeyService : IHotkeyService
         _stopAllId = -1;
     }
 
+    private readonly Dictionary<int, HotkeyBinding> _suspendedHotkeys = new();
+
+    public void SuspendAll()
+    {
+        // Temporarily unregister all hotkeys (for learning mode)
+        _suspendedHotkeys.Clear();
+        foreach (var kvp in _registeredHotkeys.ToList())
+        {
+            _suspendedHotkeys[kvp.Key] = kvp.Value;
+            NativeMethods.UnregisterHotKey(_messageSink.Handle, kvp.Key);
+        }
+        _registeredHotkeys.Clear();
+    }
+
+    public void ResumeAll()
+    {
+        // Re-register all suspended hotkeys
+        foreach (var kvp in _suspendedHotkeys)
+        {
+            RegisterHotkeyInternal(kvp.Key, kvp.Value);
+        }
+        _suspendedHotkeys.Clear();
+    }
+
     private bool RegisterHotkeyInternal(int id, HotkeyBinding binding)
     {
         uint modifiers = ConvertModifiers(binding.Modifiers);

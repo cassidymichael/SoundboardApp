@@ -108,30 +108,34 @@ public class AudioEngine : IAudioEngine
         }
     }
 
-    public void Play(int tileId, AudioBuffer buffer, float tileVolume, bool allowOverlap)
+    public void Play(int tileId, AudioBuffer buffer, float tileVolume, bool stopOthers, bool isProtected)
     {
         lock (_voiceLock)
         {
-            // Cut policy: stop existing sounds if overlap not allowed
-            if (!allowOverlap)
+            // Cut policy: stop existing sounds if stopOthers is enabled
+            if (stopOthers)
             {
-                FadeOutAll();
+                FadeOutAllUnprotected();
             }
 
             // Stop existing instances of the same tile (restart behavior)
             FadeOutTile(tileId);
 
-            // Enforce voice cap
+            // Enforce voice cap (prefer killing unprotected voices)
             while (_activeVoices.Count(v => v.MonitorVoice.State != VoiceState.Stopped) >= MaxVoices)
             {
-                KillOldestVoice();
+                if (!KillOldestUnprotectedVoice())
+                {
+                    // All voices are protected, kill oldest anyway
+                    KillOldestVoice();
+                }
             }
 
             // Create voice pair for both buses
             var monitorVoice = new Voice(tileId, buffer, tileVolume, MonitorMasterVolume);
             var injectVoice = new Voice(tileId, buffer, tileVolume, InjectMasterVolume);
 
-            var pair = new VoicePair(tileId, monitorVoice, injectVoice);
+            var pair = new VoicePair(tileId, monitorVoice, injectVoice, isProtected);
             _activeVoices.Add(pair);
 
             // Add to mixers
@@ -187,10 +191,30 @@ public class AudioEngine : IAudioEngine
         }
     }
 
+    private void FadeOutAllUnprotected()
+    {
+        foreach (var pair in _activeVoices.Where(v => !v.IsProtected))
+        {
+            pair.BeginFadeOut();
+        }
+    }
+
     private void KillOldestVoice()
     {
         var oldest = _activeVoices.FirstOrDefault(v => v.MonitorVoice.State == VoiceState.Playing);
         oldest?.BeginFadeOut();
+    }
+
+    private bool KillOldestUnprotectedVoice()
+    {
+        var oldest = _activeVoices.FirstOrDefault(v =>
+            v.MonitorVoice.State == VoiceState.Playing && !v.IsProtected);
+        if (oldest != null)
+        {
+            oldest.BeginFadeOut();
+            return true;
+        }
+        return false;
     }
 
     private void CleanupStoppedVoices()
@@ -246,12 +270,14 @@ public class AudioEngine : IAudioEngine
         public int TileId { get; }
         public Voice MonitorVoice { get; }
         public Voice InjectVoice { get; }
+        public bool IsProtected { get; }
 
-        public VoicePair(int tileId, Voice monitorVoice, Voice injectVoice)
+        public VoicePair(int tileId, Voice monitorVoice, Voice injectVoice, bool isProtected)
         {
             TileId = tileId;
             MonitorVoice = monitorVoice;
             InjectVoice = injectVoice;
+            IsProtected = isProtected;
         }
 
         public void BeginFadeOut()

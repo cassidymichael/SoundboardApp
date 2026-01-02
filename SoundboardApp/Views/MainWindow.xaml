@@ -81,7 +81,7 @@
                                 <TextBox Grid.Column="0" Text="{Binding SelectedTile.FileName, Mode=OneWay}"
                                          IsReadOnly="True" Height="26"/>
                                 <Button Grid.Column="1" Content="..." Command="{Binding ImportSoundCommand}"
-                                        Width="30" Height="26" Margin="4,0,0,0"/>
+                                        Width="40" Height="26" Margin="4,0,0,0"/>
                             </Grid>
 
                             <!-- Hotkey -->
@@ -90,12 +90,16 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" Text="{Binding SelectedTile.HotkeyDisplay, Mode=OneWay}"
                                          IsReadOnly="True" Height="26"/>
                                 <Button Grid.Column="1" Content="{Binding LearnHotkeyButtonText}"
                                         Command="{Binding LearnHotkeyCommand}"
-                                        Width="50" Height="26" Margin="4,0,0,0"/>
+                                        Width="55" Height="26" Margin="4,0,0,0"/>
+                                <Button Grid.Column="2" Content="Clear"
+                                        Command="{Binding ClearHotkeyCommand}"
+                                        Width="55" Height="26" Margin="4,0,0,0"/>
                             </Grid>
 
                             <!-- Volume -->
@@ -112,9 +116,19 @@
                                            VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
                             </Grid>
 
-                            <!-- Allow Overlap -->
-                            <CheckBox Content="Allow overlap" IsChecked="{Binding SelectedTile.AllowOverlap}"
-                                      Margin="0,0,0,10"/>
+                            <!-- Stop Others -->
+                            <StackPanel Margin="0,0,0,6">
+                                <CheckBox Content="Stop other sounds" IsChecked="{Binding SelectedTile.StopOthers}"/>
+                                <TextBlock Text="Stops any playing sounds when triggered"
+                                           Foreground="Gray" FontSize="10" Margin="18,2,0,0"/>
+                            </StackPanel>
+
+                            <!-- Protected -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="Can't be stopped" IsChecked="{Binding SelectedTile.Protected}"/>
+                                <TextBlock Text="Keeps playing when other sounds start"
+                                           Foreground="Gray" FontSize="10" Margin="18,2,0,0"/>
+                            </StackPanel>
 
                             <!-- Test Button -->
                             <Button Content="Test Sound" Command="{Binding TestSoundCommand}"

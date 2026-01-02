@@ -13,6 +13,9 @@ public interface IHotkeyService : IDisposable
     void UnregisterStopAllHotkey();
     void UnregisterAll();
 
+    void SuspendAll();
+    void ResumeAll();
+
     event EventHandler<int>? TileTriggered;
     event EventHandler? StopCurrentTriggered;
     event EventHandler? StopAllTriggered;

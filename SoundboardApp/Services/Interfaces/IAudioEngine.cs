@@ -17,7 +17,7 @@ public interface IAudioEngine : IDisposable
     void SetMonitorDevice(string? deviceId);
     void SetInjectDevice(string? deviceId);
 
-    void Play(int tileId, AudioBuffer buffer, float tileVolume, bool allowOverlap);
+    void Play(int tileId, AudioBuffer buffer, float tileVolume, bool stopOthers, bool isProtected);
 
     void StopTile(int tileId);
     void StopCurrent();

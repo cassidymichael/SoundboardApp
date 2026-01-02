@@ -25,7 +25,10 @@ public partial class TileViewModel : ObservableObject
     private int _volumePercent = 100;
 
     [ObservableProperty]
-    private bool _allowOverlap;
+    private bool _stopOthers;
+
+    [ObservableProperty]
+    private bool _protected;
 
     [ObservableProperty]
     private bool _isPlaying;
@@ -48,7 +51,8 @@ public partial class TileViewModel : ObservableObject
         // Initialize from config
         Name = config.Name;
         VolumePercent = (int)(config.Volume * 100);
-        AllowOverlap = config.AllowOverlap;
+        StopOthers = config.StopOthers;
+        Protected = config.Protected;
         HasSound = !string.IsNullOrEmpty(config.FileRelativePath);
         HotkeyDisplay = config.Hotkey?.GetDisplayString() ?? "";
 
@@ -68,7 +72,8 @@ public partial class TileViewModel : ObservableObject
     {
         _config.Name = Name;
         _config.Volume = Volume;
-        _config.AllowOverlap = AllowOverlap;
+        _config.StopOthers = StopOthers;
+        _config.Protected = Protected;
     }
 
     public void SetHotkey(HotkeyBinding? hotkey)
@@ -94,8 +99,13 @@ public partial class TileViewModel : ObservableObject
         _config.Volume = value / 100f;
     }
 
-    partial void OnAllowOverlapChanged(bool value)
+    partial void OnStopOthersChanged(bool value)
     {
-        _config.AllowOverlap = value;
+        _config.StopOthers = value;
+    }
+
+    partial void OnProtectedChanged(bool value)
+    {
+        _config.Protected = value;
     }
 }
