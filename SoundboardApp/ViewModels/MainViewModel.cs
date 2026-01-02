@@ -20,6 +20,8 @@ public partial class MainViewModel : ObservableObject
 
     private bool _isLearningHotkey;
     private readonly DispatcherTimer _saveDebounceTimer;
+    private readonly DispatcherTimer _statusFadeTimer;
+    private DateTime _statusSetTime;
 
     public ObservableCollection<TileViewModel> Tiles { get; } = new();
     public ObservableCollection<AudioDevice> OutputDevices { get; } = new();
@@ -43,7 +45,10 @@ public partial class MainViewModel : ObservableObject
     private int _injectVolumePercent = 100;
 
     [ObservableProperty]
-    private string _statusMessage = "Ready";
+    private string _statusMessage = "";
+
+    [ObservableProperty]
+    private double _statusOpacity = 0;
 
     [ObservableProperty]
     private string _learnHotkeyButtonText = "Learn";
@@ -68,6 +73,10 @@ public partial class MainViewModel : ObservableObject
             _saveDebounceTimer.Stop();
             await _configService.SaveAsync();
         };
+
+        // Status fade timer (updates every 50ms for smooth fade)
+        _statusFadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+        _statusFadeTimer.Tick += OnStatusFadeTick;
 
         // Wire up events
         _audioEngine.TileStarted += OnTileStarted;
@@ -195,7 +204,7 @@ public partial class MainViewModel : ObservableObject
         {
             try
             {
-                StatusMessage = "Importing sound...";
+                ShowStatus("Importing sound...");
 
                 var relativePath = await _configService.ImportSoundAsync(SelectedTile.Index, dialog.FileName);
                 SelectedTile.SetSoundFile(relativePath);
@@ -205,11 +214,11 @@ public partial class MainViewModel : ObservableObject
                 _soundLibrary.GetOrLoad(relativePath);
 
                 await _configService.SaveAsync();
-                StatusMessage = "Sound imported successfully";
+                ShowStatus("Sound imported successfully");
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Import failed: {ex.Message}";
+                ShowStatus($"Import failed: {ex.Message}");
             }
         }
     }
@@ -224,14 +233,14 @@ public partial class MainViewModel : ObservableObject
             // Cancel learning
             _isLearningHotkey = false;
             LearnHotkeyButtonText = "Learn";
-            StatusMessage = "Hotkey learning cancelled";
+            ShowStatus("Hotkey learning cancelled");
         }
         else
         {
             // Start learning
             _isLearningHotkey = true;
             LearnHotkeyButtonText = "Cancel";
-            StatusMessage = "Press a key to assign...";
+            ShowStatus("Press a key to assign...");
 
             // Hook into keyboard events via MainWindow
             // This will be handled by the Window's PreviewKeyDown
@@ -258,7 +267,7 @@ public partial class MainViewModel : ObservableObject
         if (_hotkeyService.RegisterTileHotkey(SelectedTile.Index, binding))
         {
             SelectedTile.SetHotkey(binding);
-            StatusMessage = $"Hotkey set to {binding.GetDisplayString()}";
+            ShowStatus($"Hotkey set to {binding.GetDisplayString()}");
             _ = _configService.SaveAsync();
         }
 
@@ -292,7 +301,7 @@ public partial class MainViewModel : ObservableObject
         var buffer = _soundLibrary.GetOrLoad(config.FileRelativePath);
         if (buffer == null)
         {
-            StatusMessage = $"Sound file not found for {tile.Name}";
+            ShowStatus($"Sound file not found for {tile.Name}");
             return;
         }
 
@@ -317,12 +326,12 @@ public partial class MainViewModel : ObservableObject
 
     private void OnAudioError(object? sender, string message)
     {
-        Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = message);
+        Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
     }
 
     private void OnHotkeyRegistrationFailed(object? sender, string message)
     {
-        Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = message);
+        Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
     }
 
     partial void OnSelectedMonitorDeviceChanged(AudioDevice? value)
@@ -356,5 +365,37 @@ public partial class MainViewModel : ObservableObject
         _configService.Config.InjectMasterVolume = value / 100f;
         _saveDebounceTimer.Stop();
         _saveDebounceTimer.Start();
+    }
+
+    private void ShowStatus(string message)
+    {
+        StatusMessage = message;
+        StatusOpacity = 1;
+        _statusSetTime = DateTime.UtcNow;
+        _statusFadeTimer.Start();
+    }
+
+    private void OnStatusFadeTick(object? sender, EventArgs e)
+    {
+        var elapsed = (DateTime.UtcNow - _statusSetTime).TotalMilliseconds;
+        const double visibleMs = 10000; // Show for 10 seconds
+        const double fadeMs = 500;      // Fade over 0.5 seconds
+
+        if (elapsed < visibleMs)
+        {
+            // Still visible
+            StatusOpacity = 1;
+        }
+        else if (elapsed < visibleMs + fadeMs)
+        {
+            // Fading out
+            StatusOpacity = 1 - ((elapsed - visibleMs) / fadeMs);
+        }
+        else
+        {
+            // Done
+            StatusOpacity = 0;
+            _statusFadeTimer.Stop();
+        }
     }
 }
