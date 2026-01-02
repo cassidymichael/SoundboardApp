@@ -1,0 +1,116 @@
+# Soundboard Build Script
+# Creates both portable and installer distributions
+
+param(
+    [switch]$Portable,
+    [switch]$Installer,
+    [switch]$All,
+    [string]$Version = "1.0.0"
+)
+
+$ErrorActionPreference = "Stop"
+
+$ProjectDir = "$PSScriptRoot\SoundboardApp"
+$PublishDir = "$PSScriptRoot\publish"
+$DistDir = "$PSScriptRoot\dist"
+$InstallerDir = "$PSScriptRoot\installer"
+
+# Inno Setup compiler - adjust path if installed elsewhere
+$ISCC = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+
+function Write-Step($message) {
+    Write-Host "`n=== $message ===" -ForegroundColor Cyan
+}
+
+function Publish-App {
+    Write-Step "Publishing application"
+
+    # Clean previous publish
+    if (Test-Path $PublishDir) {
+        Remove-Item $PublishDir -Recurse -Force
+    }
+
+    # Publish self-contained single-file
+    dotnet publish $ProjectDir `
+        -c Release `
+        -r win-x64 `
+        --self-contained true `
+        -p:PublishSingleFile=true `
+        -p:IncludeNativeLibrariesForSelfExtract=true `
+        -p:DebugType=none `
+        -p:Version=$Version `
+        -o $PublishDir
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Publish failed"
+    }
+
+    Write-Host "Published to: $PublishDir" -ForegroundColor Green
+}
+
+function New-PortableZip {
+    Write-Step "Creating portable ZIP"
+
+    if (-not (Test-Path $DistDir)) {
+        New-Item -ItemType Directory -Path $DistDir | Out-Null
+    }
+
+    $zipPath = "$DistDir\Soundboard-$Version-portable.zip"
+
+    if (Test-Path $zipPath) {
+        Remove-Item $zipPath -Force
+    }
+
+    Compress-Archive -Path "$PublishDir\*" -DestinationPath $zipPath
+
+    Write-Host "Created: $zipPath" -ForegroundColor Green
+}
+
+function New-Installer {
+    Write-Step "Creating installer"
+
+    if (-not (Test-Path $ISCC)) {
+        throw "Inno Setup not found at: $ISCC`nDownload from: https://jrsoftware.org/isdl.php"
+    }
+
+    if (-not (Test-Path $DistDir)) {
+        New-Item -ItemType Directory -Path $DistDir | Out-Null
+    }
+
+    # Update version in .iss file
+    $issPath = "$InstallerDir\soundboard.iss"
+    $issContent = Get-Content $issPath -Raw
+    $issContent = $issContent -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$Version`""
+    Set-Content $issPath $issContent
+
+    # Run Inno Setup compiler
+    & $ISCC $issPath
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Inno Setup compilation failed"
+    }
+
+    Write-Host "Installer created in: $DistDir" -ForegroundColor Green
+}
+
+# Main
+Write-Host "Soundboard Build Script v$Version" -ForegroundColor Yellow
+
+if (-not ($Portable -or $Installer -or $All)) {
+    $All = $true  # Default to building all
+}
+
+# Always publish first
+Publish-App
+
+if ($Portable -or $All) {
+    New-PortableZip
+}
+
+if ($Installer -or $All) {
+    New-Installer
+}
+
+Write-Step "Build complete!"
+Write-Host "Output files are in: $DistDir" -ForegroundColor Green
+Get-ChildItem $DistDir | ForEach-Object { Write-Host "  - $($_.Name)" }
