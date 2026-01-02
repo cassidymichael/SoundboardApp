@@ -63,12 +63,12 @@ public partial class TileViewModel : ObservableObject
         VolumePercent = (int)(config.Volume * 100);
         StopOthers = config.StopOthers;
         Protected = config.Protected;
-        HasSound = !string.IsNullOrEmpty(config.FileRelativePath);
+        HasSound = !string.IsNullOrEmpty(config.FilePath);
         HotkeyDisplay = config.Hotkey?.GetDisplayString() ?? "";
 
-        if (!string.IsNullOrEmpty(config.FileRelativePath))
+        if (!string.IsNullOrEmpty(config.FilePath))
         {
-            FileName = Path.GetFileName(config.FileRelativePath);
+            FileName = Path.GetFileName(config.FilePath);
         }
     }
 
@@ -104,11 +104,11 @@ public partial class TileViewModel : ObservableObject
         HotkeyDisplay = hotkey?.GetDisplayString() ?? "";
     }
 
-    public void SetSoundFile(string relativePath)
+    public void SetSoundFile(string filePath)
     {
-        _config.FileRelativePath = relativePath;
-        FileName = Path.GetFileName(relativePath);
-        HasSound = !string.IsNullOrEmpty(relativePath);
+        _config.FilePath = filePath;
+        FileName = Path.GetFileName(filePath);
+        HasSound = !string.IsNullOrEmpty(filePath);
     }
 
     partial void OnNameChanged(string value)

@@ -7,7 +7,7 @@ public interface ISoundLibrary
     /// <summary>
     /// Gets a cached audio buffer, loading and decoding the file if not already cached.
     /// </summary>
-    AudioBuffer? GetOrLoad(string relativePath);
+    AudioBuffer? GetOrLoad(string filePath);
 
     /// <summary>
     /// Preloads all sounds for the given tiles.
@@ -17,7 +17,7 @@ public interface ISoundLibrary
     /// <summary>
     /// Clears the cache for a specific file.
     /// </summary>
-    void Invalidate(string relativePath);
+    void Invalidate(string filePath);
 
     /// <summary>
     /// Clears all cached audio.

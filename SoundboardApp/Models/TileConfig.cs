@@ -4,7 +4,7 @@ public class TileConfig
 {
     public int Index { get; set; }
     public string Name { get; set; } = "Empty";
-    public string? FileRelativePath { get; set; }
+    public string? FilePath { get; set; }
     public float Volume { get; set; } = 1.0f;
     public bool StopOthers { get; set; }
     public bool Protected { get; set; }

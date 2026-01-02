@@ -9,37 +9,57 @@ namespace Soundboard.Services;
 
 public class SoundLibrary : ISoundLibrary
 {
-    private readonly IConfigService _configService;
     private readonly ConcurrentDictionary<string, AudioBuffer> _cache = new();
 
     // Target format for all audio: float32, stereo, 48kHz
     private static readonly WaveFormat TargetFormat = WaveFormat.CreateIeeeFloatWaveFormat(48000, 2);
 
-    public SoundLibrary(IConfigService configService)
+    public AudioBuffer? GetOrLoad(string filePath)
     {
-        _configService = configService;
-    }
-
-    public AudioBuffer? GetOrLoad(string relativePath)
-    {
-        if (string.IsNullOrEmpty(relativePath))
+        if (string.IsNullOrEmpty(filePath))
             return null;
 
-        return _cache.GetOrAdd(relativePath, path => DecodeFile(path));
+        // Check cache first
+        if (_cache.TryGetValue(filePath, out var cached))
+            return cached;
+
+        // Try to load the file
+        try
+        {
+            var buffer = DecodeFile(filePath);
+            _cache.TryAdd(filePath, buffer);
+            return buffer;
+        }
+        catch (FileNotFoundException)
+        {
+            // File was moved or deleted - return null so caller can handle it
+            return null;
+        }
     }
 
     public async Task PreloadAsync(IEnumerable<TileConfig> tiles)
     {
+        // Preload all sounds in parallel, ignoring any that fail to load
         var tasks = tiles
-            .Where(t => !string.IsNullOrEmpty(t.FileRelativePath))
-            .Select(t => Task.Run(() => GetOrLoad(t.FileRelativePath!)));
+            .Where(t => !string.IsNullOrEmpty(t.FilePath))
+            .Select(t => Task.Run(() =>
+            {
+                try
+                {
+                    GetOrLoad(t.FilePath!);
+                }
+                catch
+                {
+                    // Ignore failures during preload - will be handled when played
+                }
+            }));
 
         await Task.WhenAll(tasks);
     }
 
-    public void Invalidate(string relativePath)
+    public void Invalidate(string filePath)
     {
-        _cache.TryRemove(relativePath, out _);
+        _cache.TryRemove(filePath, out _);
     }
 
     public void ClearCache()
@@ -47,16 +67,14 @@ public class SoundLibrary : ISoundLibrary
         _cache.Clear();
     }
 
-    private AudioBuffer DecodeFile(string relativePath)
+    private AudioBuffer DecodeFile(string filePath)
     {
-        var fullPath = _configService.GetSoundFullPath(relativePath);
-
-        if (!File.Exists(fullPath))
+        if (!File.Exists(filePath))
         {
-            throw new FileNotFoundException($"Sound file not found: {fullPath}");
+            throw new FileNotFoundException($"Sound file not found: {filePath}");
         }
 
-        using var reader = new AudioFileReader(fullPath);
+        using var reader = new AudioFileReader(filePath);
 
         // Convert to target format
         ISampleProvider source = reader;

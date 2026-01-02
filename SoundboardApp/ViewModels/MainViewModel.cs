@@ -247,21 +247,27 @@ public partial class MainViewModel : ObservableObject
         {
             try
             {
-                ShowStatus("Importing sound...");
+                var filePath = dialog.FileName;
 
-                var relativePath = await _configService.ImportSoundAsync(SelectedTile.Index, dialog.FileName);
-                SelectedTile.SetSoundFile(relativePath);
+                // Invalidate old cache entry if there was a previous sound
+                var oldPath = SelectedTile.Config.FilePath;
+                if (!string.IsNullOrEmpty(oldPath))
+                {
+                    _soundLibrary.Invalidate(oldPath);
+                }
 
-                // Invalidate cache and reload
-                _soundLibrary.Invalidate(relativePath);
-                _soundLibrary.GetOrLoad(relativePath);
+                // Store the absolute path directly
+                SelectedTile.SetSoundFile(filePath);
+
+                // Preload the sound
+                _soundLibrary.GetOrLoad(filePath);
 
                 await _configService.SaveAsync();
-                ShowStatus("Sound imported successfully");
+                ShowStatus($"Sound set: {System.IO.Path.GetFileName(filePath)}");
             }
             catch (Exception ex)
             {
-                ShowStatus($"Import failed: {ex.Message}");
+                ShowStatus($"Failed to load sound: {ex.Message}");
             }
         }
     }
@@ -457,7 +463,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (SelectedTile == null || !SelectedTile.HasSound) return;
 
-        var oldPath = SelectedTile.Config.FileRelativePath;
+        var oldPath = SelectedTile.Config.FilePath;
         SelectedTile.SetSoundFile(string.Empty);
 
         if (!string.IsNullOrEmpty(oldPath))
@@ -482,9 +488,9 @@ public partial class MainViewModel : ObservableObject
         if (!tile.HasSound) return;
 
         var config = tile.Config;
-        if (string.IsNullOrEmpty(config.FileRelativePath)) return;
+        if (string.IsNullOrEmpty(config.FilePath)) return;
 
-        var buffer = _soundLibrary.GetOrLoad(config.FileRelativePath);
+        var buffer = _soundLibrary.GetOrLoad(config.FilePath);
         if (buffer == null)
         {
             ShowStatus($"Sound file not found for {tile.Name}");
