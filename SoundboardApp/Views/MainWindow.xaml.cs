@@ -112,7 +112,7 @@ public partial class MainWindow : Window
         Application.Current.Shutdown();
     }
 
-    private void TrayIcon_DoubleClick(object sender, RoutedEventArgs e)
+    private void TrayIcon_Click(object sender, RoutedEventArgs e)
     {
         ShowFromTray();
     }
