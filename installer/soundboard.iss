@@ -2,7 +2,7 @@
 ; Compile with: ISCC.exe soundboard.iss
 
 #define MyAppName "Soundboard"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.0.3"
 #define MyAppPublisher "Michael Cassidy"
 #define MyAppExeName "Soundboard.exe"
 #define MyAppURL "https://github.com/cassidymichael/SoundboardApp"
@@ -50,6 +50,8 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: st
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+
+
 
 
 

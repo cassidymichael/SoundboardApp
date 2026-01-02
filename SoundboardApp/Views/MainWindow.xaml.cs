@@ -70,6 +70,14 @@ public partial class MainWindow : Window
         return menu;
     }
 
+    private void TrayIcon_MouseClick(object? sender, Forms.MouseEventArgs e)
+    {
+        if (e.Button == Forms.MouseButtons.Left)
+        {
+            Dispatcher.Invoke(ShowFromTray);
+        }
+    }
+
     public void ShowSettings()
     {
         ShowFromTray();
@@ -94,14 +102,6 @@ public partial class MainWindow : Window
     private void AboutButton_Click(object sender, RoutedEventArgs e)
     {
         ShowAbout();
-    }
-
-    private void TrayIcon_MouseClick(object? sender, Forms.MouseEventArgs e)
-    {
-        if (e.Button == Forms.MouseButtons.Left)
-        {
-            Dispatcher.Invoke(ShowFromTray);
-        }
     }
 
     private static Icon CreateIcon()
