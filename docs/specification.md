@@ -118,6 +118,7 @@ Note: Sound files are referenced by absolute path (not copied). User manages the
 - Progress bar animation on playing tiles
 - Stop All button with configurable hotkey
 - Per-tile stop button (visible during playback)
+- Dark mode UI with dark title bars (Windows 10 1809+)
 
 ### Future Enhancements
 - Serilog logging integration

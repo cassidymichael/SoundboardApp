@@ -10,6 +10,7 @@
         Height="600" Width="900"
         MinHeight="500" MinWidth="750"
         WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}"
         Closing="Window_Closing">
 
     <!-- DataContext is set in code-behind from DI container -->
@@ -49,15 +50,15 @@
                           Margin="2,0"
                           HorizontalAlignment="Center"
                           VerticalAlignment="Stretch"
-                          Background="#FFE0E0E0"
+                          Background="{StaticResource ElevatedSurfaceBrush}"
                           Cursor="SizeWE">
                 <GridSplitter.Template>
                     <ControlTemplate TargetType="GridSplitter">
                         <Border Background="{TemplateBinding Background}" CornerRadius="2">
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Ellipse Width="3" Height="3" Fill="#FF999999" Margin="0,1"/>
-                                <Ellipse Width="3" Height="3" Fill="#FF999999" Margin="0,1"/>
-                                <Ellipse Width="3" Height="3" Fill="#FF999999" Margin="0,1"/>
+                                <Ellipse Width="3" Height="3" Fill="{StaticResource SecondaryTextBrush}" Margin="0,1"/>
+                                <Ellipse Width="3" Height="3" Fill="{StaticResource SecondaryTextBrush}" Margin="0,1"/>
+                                <Ellipse Width="3" Height="3" Fill="{StaticResource SecondaryTextBrush}" Margin="0,1"/>
                             </StackPanel>
                         </Border>
                     </ControlTemplate>
@@ -65,20 +66,23 @@
             </GridSplitter>
 
             <!-- Right: Tile Editor Panel -->
-            <Border Grid.Column="2" BorderBrush="#FFCCCCCC" BorderThickness="0" CornerRadius="4" Margin="8,0,0,0">
+            <Border Grid.Column="2" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0" CornerRadius="4" Margin="8,0,0,0">
                 <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto" Padding="12">
                     <Grid>
                         <!-- Tile Editor Section -->
                         <StackPanel Visibility="{Binding HasSelectedTile, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <TextBlock Text="Tile Settings" FontWeight="Bold" FontSize="14" Margin="0,0,0,12"/>
+                            <TextBlock Text="Tile Settings" FontWeight="Bold" FontSize="14" Margin="0,0,0,12"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
 
                             <!-- Name -->
-                            <TextBlock Text="Name" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Name" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
                             <TextBox Text="{Binding SelectedTile.Name, UpdateSourceTrigger=PropertyChanged}"
                                      Height="26" Margin="0,0,0,10"/>
 
                             <!-- Sound File -->
-                            <TextBlock Text="Sound File" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Sound File" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -98,7 +102,8 @@
                             </Grid>
 
                             <!-- Hotkey -->
-                            <TextBlock Text="Hotkey" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Hotkey" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -116,7 +121,8 @@
                             </Grid>
 
                             <!-- Volume -->
-                            <TextBlock Text="Volume" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Volume" FontWeight="SemiBold" Margin="0,0,0,4"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -126,21 +132,22 @@
                                         Value="{Binding SelectedTile.VolumePercent}"
                                         VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{Binding SelectedTile.VolumePercent, StringFormat={}{0:0}%}"
-                                           VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+                                           VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"
+                                           Foreground="{StaticResource SecondaryTextBrush}"/>
                             </Grid>
 
                             <!-- Stop Others -->
                             <StackPanel Margin="0,0,0,6">
                                 <CheckBox Content="Stop other sounds" IsChecked="{Binding SelectedTile.StopOthers}"/>
                                 <TextBlock Text="Stops any playing sounds when triggered"
-                                           Foreground="Gray" FontSize="10" Margin="18,2,0,0"/>
+                                           Foreground="{StaticResource SecondaryTextBrush}" FontSize="10" Margin="18,2,0,0"/>
                             </StackPanel>
 
                             <!-- Protected -->
                             <StackPanel Margin="0,0,0,10">
                                 <CheckBox Content="Can't be stopped" IsChecked="{Binding SelectedTile.Protected}"/>
                                 <TextBlock Text="Keeps playing when other sounds start"
-                                           Foreground="Gray" FontSize="10" Margin="18,2,0,0"/>
+                                           Foreground="{StaticResource SecondaryTextBrush}" FontSize="10" Margin="18,2,0,0"/>
                             </StackPanel>
 
                         </StackPanel>
@@ -148,7 +155,7 @@
                         <!-- No Tile Selected -->
                         <TextBlock Text="Select a tile to edit"
                                    Visibility="{Binding HasSelectedTile, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                                   Foreground="Gray" FontStyle="Italic"
+                                   Foreground="{StaticResource MutedTextBrush}" FontStyle="Italic"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </ScrollViewer>
@@ -156,7 +163,7 @@
         </Grid>
 
         <!-- Bottom: Output Devices + Controls -->
-        <Border Grid.Row="1" BorderBrush="#FFCCCCCC" BorderThickness="1" CornerRadius="4" Margin="0,10,0,0" Padding="12,10">
+        <Border Grid.Row="1" BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1" CornerRadius="4" Margin="0,10,0,0" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -168,7 +175,8 @@
 
                 <!-- Monitor Output -->
                 <StackPanel Grid.Column="0" Margin="0,0,15,0">
-                    <TextBlock Text="Monitor (You Hear)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="Monitor (You Hear)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"
+                               Foreground="{StaticResource PrimaryTextBrush}"/>
                     <ComboBox ItemsSource="{Binding OutputDevices}"
                               SelectedItem="{Binding SelectedMonitorDevice}"
                               DisplayMemberPath="Name" Height="26"/>
@@ -181,13 +189,15 @@
                                 Value="{Binding MonitorVolumePercent}"
                                 VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Text="{Binding MonitorVolumePercent, StringFormat={}{0:0}%}"
-                                   VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"
+                                   Foreground="{StaticResource SecondaryTextBrush}"/>
                     </Grid>
                 </StackPanel>
 
                 <!-- Inject Output -->
                 <StackPanel Grid.Column="1" Margin="15,0,20,0">
-                    <TextBlock Text="Inject (Voicemeeter/Mic)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="Inject (Voicemeeter/Mic)" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6"
+                               Foreground="{StaticResource PrimaryTextBrush}"/>
                     <ComboBox ItemsSource="{Binding OutputDevices}"
                               SelectedItem="{Binding SelectedInjectDevice}"
                               DisplayMemberPath="Name" Height="26"/>
@@ -200,14 +210,16 @@
                                 Value="{Binding InjectVolumePercent}"
                                 VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Text="{Binding InjectVolumePercent, StringFormat={}{0:0}%}"
-                                   VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"
+                                   Foreground="{StaticResource SecondaryTextBrush}"/>
                     </Grid>
                 </StackPanel>
 
                 <!-- Mode Toggle -->
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Text="Mode Select" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" HorizontalAlignment="Center"/>
-                    <Border BorderBrush="#FFCCCCCC" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Center">
+                    <TextBlock Text="Mode Select" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,6" HorizontalAlignment="Center"
+                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                    <Border BorderBrush="{StaticResource BorderMediumBrush}" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <RadioButton Content="Play"
                                          IsChecked="{Binding ClickToPlayEnabled}"
@@ -220,7 +232,7 @@
                         </StackPanel>
                     </Border>
                     <TextBlock Text="Left-click tiles to play or edit"
-                               FontSize="10" Foreground="#FF888888"
+                               FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
                                HorizontalAlignment="Center" Margin="0,2,0,0"/>
                 </StackPanel>
 
@@ -264,7 +276,7 @@
 
         <!-- Status Bar (Toast) -->
         <Border Grid.Row="2" Padding="8,6" Opacity="{Binding StatusOpacity}">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#FF666666" FontSize="11"/>
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11"/>
         </Border>
     </Grid>
 </Window>

@@ -1,3 +1,4 @@
+using Soundboard.Interop;
 using Soundboard.ViewModels;
 using System.ComponentModel;
 using System.Drawing;
@@ -17,6 +18,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Enable dark title bar
+        SourceInitialized += (s, e) =>
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            NativeMethods.EnableDarkTitleBar(hwnd);
+        };
 
         // Get ViewModel from DI container
         var app = (App)System.Windows.Application.Current;

@@ -24,4 +24,16 @@ internal static class NativeMethods
 
     // Error codes
     public const int ERROR_HOTKEY_ALREADY_REGISTERED = 1409;
+
+    // Dark mode title bar (Windows 10 1809+ / Windows 11)
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    public static void EnableDarkTitleBar(IntPtr hwnd)
+    {
+        int value = 1;
+        DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref value, sizeof(int));
+    }
 }

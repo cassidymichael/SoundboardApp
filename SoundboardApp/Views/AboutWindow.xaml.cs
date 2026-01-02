@@ -1,5 +1,7 @@
+using Soundboard.Interop;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Interop;
 
 namespace Soundboard.Views;
 
@@ -8,6 +10,12 @@ public partial class AboutWindow : Window
     public AboutWindow()
     {
         InitializeComponent();
+
+        SourceInitialized += (s, e) =>
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            NativeMethods.EnableDarkTitleBar(hwnd);
+        };
 
         // Get version from assembly
         var version = Assembly.GetExecutingAssembly().GetName().Version;

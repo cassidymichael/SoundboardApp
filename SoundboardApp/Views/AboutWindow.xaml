@@ -7,21 +7,23 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        WindowStyle="ToolWindow">
+        WindowStyle="ToolWindow"
+        Background="{StaticResource SurfaceBackgroundBrush}">
 
     <StackPanel Margin="24" HorizontalAlignment="Center">
         <!-- App Icon Circle -->
-        <Ellipse Width="48" Height="48" Fill="#FF3498DB" Margin="0,0,0,16" HorizontalAlignment="Center"/>
+        <Ellipse Width="48" Height="48" Fill="{StaticResource PrimaryBrush}" Margin="0,0,0,16" HorizontalAlignment="Center"/>
 
         <!-- App Name -->
-        <TextBlock Text="Soundboard" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="Soundboard" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"
+                   Foreground="{StaticResource PrimaryTextBrush}"/>
 
         <!-- Version -->
-        <TextBlock x:Name="VersionText" Text="Version 1.0.0" Foreground="Gray"
+        <TextBlock x:Name="VersionText" Text="Version 1.0.0" Foreground="{StaticResource SecondaryTextBrush}"
                    HorizontalAlignment="Center" Margin="0,4,0,16"/>
 
         <!-- Copyright -->
-        <TextBlock x:Name="CopyrightText" Text="© 2024" Foreground="Gray"
+        <TextBlock x:Name="CopyrightText" Text="© 2024" Foreground="{StaticResource SecondaryTextBrush}"
                    HorizontalAlignment="Center" FontSize="11"/>
 
         <!-- OK Button -->
