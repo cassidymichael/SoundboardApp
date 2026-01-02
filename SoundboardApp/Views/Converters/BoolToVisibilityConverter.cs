@@ -45,3 +45,4 @@ public class InverseBoolToVisibilityConverter : IValueConverter
         return true;
     }
 }
+

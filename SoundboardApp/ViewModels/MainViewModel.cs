@@ -54,6 +54,15 @@ public partial class MainViewModel : ObservableObject
     private string _learnHotkeyButtonText = "Set";
 
     [ObservableProperty]
+    private string _learnStopAllHotkeyButtonText = "Set";
+
+    [ObservableProperty]
+    private string _stopAllHotkeyDisplay = "";
+
+    [ObservableProperty]
+    private bool _isLearningStopAllHotkey;
+
+    [ObservableProperty]
     private bool _clickToPlayEnabled = true;
 
     public bool EditModeEnabled
@@ -138,7 +147,10 @@ public partial class MainViewModel : ObservableObject
         if (_configService.Config.StopCurrentHotkey != null)
             _hotkeyService.RegisterStopCurrentHotkey(_configService.Config.StopCurrentHotkey);
         if (_configService.Config.StopAllHotkey != null)
+        {
             _hotkeyService.RegisterStopAllHotkey(_configService.Config.StopAllHotkey);
+            StopAllHotkeyDisplay = _configService.Config.StopAllHotkey.GetDisplayString();
+        }
 
         // Preload sounds
         _ = _soundLibrary.PreloadAsync(_configService.Config.Tiles);
@@ -175,6 +187,14 @@ public partial class MainViewModel : ObservableObject
         {
             _isLearningHotkey = false;
             LearnHotkeyButtonText = "Set";
+            _hotkeyService.ResumeAll();
+        }
+
+        // Cancel Stop All hotkey learning if active
+        if (_isLearningStopAllHotkey)
+        {
+            _isLearningStopAllHotkey = false;
+            LearnStopAllHotkeyButtonText = "Set";
             _hotkeyService.ResumeAll();
         }
     }
@@ -251,6 +271,13 @@ public partial class MainViewModel : ObservableObject
     {
         if (SelectedTile == null) return;
 
+        // Cancel Stop All hotkey learning if active
+        if (_isLearningStopAllHotkey)
+        {
+            _isLearningStopAllHotkey = false;
+            LearnStopAllHotkeyButtonText = "Set";
+        }
+
         if (_isLearningHotkey)
         {
             // Cancel learning
@@ -271,14 +298,20 @@ public partial class MainViewModel : ObservableObject
 
     public void OnKeyPressed(System.Windows.Input.Key key, System.Windows.Input.ModifierKeys modifiers)
     {
-        if (!_isLearningHotkey || SelectedTile == null) return;
-
         // Ignore modifier-only presses
         if (key == System.Windows.Input.Key.LeftCtrl || key == System.Windows.Input.Key.RightCtrl ||
             key == System.Windows.Input.Key.LeftAlt || key == System.Windows.Input.Key.RightAlt ||
             key == System.Windows.Input.Key.LeftShift || key == System.Windows.Input.Key.RightShift ||
             key == System.Windows.Input.Key.LWin || key == System.Windows.Input.Key.RWin)
             return;
+
+        if (_isLearningStopAllHotkey)
+        {
+            OnStopAllKeyPressed(key, modifiers);
+            return;
+        }
+
+        if (!_isLearningHotkey || SelectedTile == null) return;
 
         var binding = new HotkeyBinding(key, modifiers);
 
@@ -320,6 +353,48 @@ public partial class MainViewModel : ObservableObject
         LearnHotkeyButtonText = "Set";
     }
 
+    private void OnStopAllKeyPressed(System.Windows.Input.Key key, System.Windows.Input.ModifierKeys modifiers)
+    {
+        var binding = new HotkeyBinding(key, modifiers);
+
+        // Check if any tile already has this hotkey - if so, unbind it
+        int? conflictingTileIndex = null;
+        foreach (var tile in Tiles)
+        {
+            if (tile.Config.Hotkey != null &&
+                tile.Config.Hotkey.Key == key &&
+                tile.Config.Hotkey.Modifiers == modifiers)
+            {
+                conflictingTileIndex = tile.Index;
+                tile.SetHotkey(null);
+            }
+        }
+
+        // Resume hotkeys
+        _hotkeyService.ResumeAll();
+
+        // Unregister the conflicting tile's hotkey (it was re-registered by ResumeAll)
+        if (conflictingTileIndex.HasValue)
+        {
+            _hotkeyService.UnregisterTileHotkey(conflictingTileIndex.Value);
+        }
+
+        // Unregister old Stop All hotkey
+        _hotkeyService.UnregisterStopAllHotkey();
+
+        // Register new hotkey
+        if (_hotkeyService.RegisterStopAllHotkey(binding))
+        {
+            _configService.Config.StopAllHotkey = binding;
+            StopAllHotkeyDisplay = binding.GetDisplayString();
+            ShowStatus($"Stop All hotkey set to {binding.GetDisplayString()}");
+            _ = _configService.SaveAsync();
+        }
+
+        _isLearningStopAllHotkey = false;
+        LearnStopAllHotkeyButtonText = "Set";
+    }
+
     [RelayCommand]
     private void ClearHotkey()
     {
@@ -329,6 +404,44 @@ public partial class MainViewModel : ObservableObject
         SelectedTile.SetHotkey(null);
         _ = _configService.SaveAsync();
         ShowStatus("Hotkey cleared");
+    }
+
+    [RelayCommand]
+    private void LearnStopAllHotkey()
+    {
+        // Cancel tile hotkey learning if active
+        if (_isLearningHotkey)
+        {
+            _isLearningHotkey = false;
+            LearnHotkeyButtonText = "Set";
+        }
+
+        if (_isLearningStopAllHotkey)
+        {
+            // Cancel learning
+            _isLearningStopAllHotkey = false;
+            LearnStopAllHotkeyButtonText = "Set";
+            _hotkeyService.ResumeAll();
+            ShowStatus("Stop All hotkey learning cancelled");
+        }
+        else
+        {
+            // Start learning - suspend all hotkeys so we can capture any key
+            _isLearningStopAllHotkey = true;
+            LearnStopAllHotkeyButtonText = "Cancel";
+            _hotkeyService.SuspendAll();
+            ShowStatus("Press a key to assign to Stop All...");
+        }
+    }
+
+    [RelayCommand]
+    private void ClearStopAllHotkey()
+    {
+        _hotkeyService.UnregisterStopAllHotkey();
+        _configService.Config.StopAllHotkey = null;
+        StopAllHotkeyDisplay = "";
+        _ = _configService.SaveAsync();
+        ShowStatus("Stop All hotkey cleared");
     }
 
     [RelayCommand]
