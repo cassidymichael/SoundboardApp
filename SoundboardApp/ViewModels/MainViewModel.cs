@@ -191,9 +191,9 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Cancel Stop All hotkey learning if active
-        if (_isLearningStopAllHotkey)
+        if (IsLearningStopAllHotkey)
         {
-            _isLearningStopAllHotkey = false;
+            IsLearningStopAllHotkey = false;
             LearnStopAllHotkeyButtonText = "Set";
             _hotkeyService.ResumeAll();
         }
@@ -278,9 +278,9 @@ public partial class MainViewModel : ObservableObject
         if (SelectedTile == null) return;
 
         // Cancel Stop All hotkey learning if active
-        if (_isLearningStopAllHotkey)
+        if (IsLearningStopAllHotkey)
         {
-            _isLearningStopAllHotkey = false;
+            IsLearningStopAllHotkey = false;
             LearnStopAllHotkeyButtonText = "Set";
         }
 
@@ -311,7 +311,7 @@ public partial class MainViewModel : ObservableObject
             key == System.Windows.Input.Key.LWin || key == System.Windows.Input.Key.RWin)
             return;
 
-        if (_isLearningStopAllHotkey)
+        if (IsLearningStopAllHotkey)
         {
             OnStopAllKeyPressed(key, modifiers);
             return;
@@ -335,13 +335,24 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
+        // Check if Stop All hotkey already has this binding
+        bool conflictsWithStopAll = _configService.Config.StopAllHotkey != null &&
+            _configService.Config.StopAllHotkey.Key == key &&
+            _configService.Config.StopAllHotkey.Modifiers == modifiers;
+
         // Resume hotkeys
         _hotkeyService.ResumeAll();
 
-        // Unregister the conflicting tile's hotkey (it was re-registered by ResumeAll)
+        // Unregister conflicting hotkeys (they were re-registered by ResumeAll)
         if (conflictingTileIndex.HasValue)
         {
             _hotkeyService.UnregisterTileHotkey(conflictingTileIndex.Value);
+        }
+        if (conflictsWithStopAll)
+        {
+            _hotkeyService.UnregisterStopAllHotkey();
+            _configService.Config.StopAllHotkey = null;
+            StopAllHotkeyDisplay = "";
         }
 
         // Unregister old hotkey for this tile
@@ -397,7 +408,7 @@ public partial class MainViewModel : ObservableObject
             _ = _configService.SaveAsync();
         }
 
-        _isLearningStopAllHotkey = false;
+        IsLearningStopAllHotkey = false;
         LearnStopAllHotkeyButtonText = "Set";
     }
 
@@ -422,10 +433,10 @@ public partial class MainViewModel : ObservableObject
             LearnHotkeyButtonText = "Set";
         }
 
-        if (_isLearningStopAllHotkey)
+        if (IsLearningStopAllHotkey)
         {
             // Cancel learning
-            _isLearningStopAllHotkey = false;
+            IsLearningStopAllHotkey = false;
             LearnStopAllHotkeyButtonText = "Set";
             _hotkeyService.ResumeAll();
             ShowStatus("Stop All hotkey learning cancelled");
@@ -433,7 +444,7 @@ public partial class MainViewModel : ObservableObject
         else
         {
             // Start learning - suspend all hotkeys so we can capture any key
-            _isLearningStopAllHotkey = true;
+            IsLearningStopAllHotkey = true;
             LearnStopAllHotkeyButtonText = "Cancel";
             _hotkeyService.SuspendAll();
             ShowStatus("Press a key to assign to Stop All...");

@@ -27,7 +27,22 @@ function Publish-App {
 
     # Clean previous publish
     if (Test-Path $PublishDir) {
-        Remove-Item $PublishDir -Recurse -Force
+        # Check if Soundboard is running
+        $proc = Get-Process -Name "Soundboard" -ErrorAction SilentlyContinue
+        if ($proc) {
+            Write-Host "Soundboard is running. Closing it..." -ForegroundColor Yellow
+            $proc | Stop-Process -Force
+            Start-Sleep -Milliseconds 500
+        }
+
+        try {
+            Remove-Item $PublishDir -Recurse -Force -ErrorAction Stop
+        }
+        catch {
+            Write-Host "Could not clean publish folder. Retrying..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 1
+            Remove-Item $PublishDir -Recurse -Force
+        }
     }
 
     # Publish self-contained single-file
