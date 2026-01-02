@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
 namespace Soundboard.Views;
 
@@ -21,8 +23,13 @@ public partial class MainWindow : Window
         // Handle keyboard input for hotkey learning
         PreviewKeyDown += OnPreviewKeyDown;
 
-        // Create tray icon
-        TrayIcon.Icon = CreateTrayIcon();
+        // Create tray icon and window icon
+        var icon = CreateTrayIcon();
+        TrayIcon.Icon = icon;
+        Icon = Imaging.CreateBitmapSourceFromHIcon(
+            icon.Handle,
+            Int32Rect.Empty,
+            BitmapSizeOptions.FromEmptyOptions());
     }
 
     private static Icon CreateTrayIcon()
