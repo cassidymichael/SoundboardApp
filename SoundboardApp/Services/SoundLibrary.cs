@@ -14,6 +14,9 @@ public class SoundLibrary : ISoundLibrary
     // Target format for all audio: float32, stereo, 48kHz
     private static readonly WaveFormat TargetFormat = WaveFormat.CreateIeeeFloatWaveFormat(48000, 2);
 
+    // Safety cap for preloading - on-demand loading still works beyond this limit
+    private const int MaxPreloadCount = 50;
+
     public AudioBuffer? GetOrLoad(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
@@ -39,9 +42,11 @@ public class SoundLibrary : ISoundLibrary
 
     public async Task PreloadAsync(IEnumerable<TileConfig> tiles)
     {
-        // Preload all sounds in parallel, ignoring any that fail to load
+        // Preload sounds in parallel, limited to MaxPreloadCount
+        // Additional sounds will load on-demand when played
         var tasks = tiles
             .Where(t => !string.IsNullOrEmpty(t.FilePath))
+            .Take(MaxPreloadCount)
             .Select(t => Task.Run(() =>
             {
                 try
@@ -65,6 +70,17 @@ public class SoundLibrary : ISoundLibrary
     public void ClearCache()
     {
         _cache.Clear();
+    }
+
+    /// <summary>
+    /// Calculates expected sample count after conversion to target format.
+    /// Includes 5% buffer for resampling variance.
+    /// </summary>
+    private static int CalculateExpectedSampleCount(AudioFileReader reader)
+    {
+        var durationSeconds = reader.TotalTime.TotalSeconds;
+        var expectedSamples = (int)Math.Ceiling(durationSeconds * TargetFormat.SampleRate * TargetFormat.Channels);
+        return expectedSamples + (expectedSamples / 20);
     }
 
     private AudioBuffer DecodeFile(string filePath)
@@ -96,19 +112,32 @@ public class SoundLibrary : ISoundLibrary
             source = new WdlResamplingSampleProvider(source, TargetFormat.SampleRate);
         }
 
-        // Read all samples into memory
-        var samples = new List<float>();
-        var buffer = new float[TargetFormat.SampleRate * TargetFormat.Channels]; // 1 second buffer
+        // Pre-allocate buffer based on expected sample count (avoids List reallocations)
+        int expectedSamples = CalculateExpectedSampleCount(reader);
+        var samples = new float[expectedSamples];
 
+        var readBuffer = new float[TargetFormat.SampleRate * TargetFormat.Channels]; // 1 second chunks
+        int totalSamplesRead = 0;
         int samplesRead;
-        while ((samplesRead = source.Read(buffer, 0, buffer.Length)) > 0)
+
+        while ((samplesRead = source.Read(readBuffer, 0, readBuffer.Length)) > 0)
         {
-            for (int i = 0; i < samplesRead; i++)
+            // Expand if resampling produced more than expected (rare edge case)
+            if (totalSamplesRead + samplesRead > samples.Length)
             {
-                samples.Add(buffer[i]);
+                Array.Resize(ref samples, samples.Length + samples.Length / 4);
             }
+
+            Array.Copy(readBuffer, 0, samples, totalSamplesRead, samplesRead);
+            totalSamplesRead += samplesRead;
         }
 
-        return new AudioBuffer(samples.ToArray(), TargetFormat);
+        // Trim to exact size if we over-allocated
+        if (totalSamplesRead < samples.Length)
+        {
+            Array.Resize(ref samples, totalSamplesRead);
+        }
+
+        return new AudioBuffer(samples, TargetFormat);
     }
 }
