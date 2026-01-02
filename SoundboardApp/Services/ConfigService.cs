@@ -82,9 +82,8 @@ public class ConfigService : IConfigService
             File.Delete(existingFile);
         }
 
-        // Copy the new file
-        var extension = Path.GetExtension(sourceFilePath);
-        var destFileName = $"clip{extension}";
+        // Copy the new file, keeping original filename
+        var destFileName = Path.GetFileName(sourceFilePath);
         var destPath = Path.Combine(tileDir, destFileName);
 
         await Task.Run(() => File.Copy(sourceFilePath, destPath, overwrite: true));

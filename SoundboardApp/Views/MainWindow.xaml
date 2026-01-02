@@ -59,17 +59,16 @@
 
             <!-- Bottom Controls -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-                <Button Content="Stop Current" Command="{Binding StopCurrentCommand}"
-                        Width="100" Height="32" Margin="5,0"/>
                 <Button Content="Stop All" Command="{Binding StopAllCommand}"
-                        Width="100" Height="32" Margin="5,0"
+                        Width="120" Height="32" Margin="5,0"
                         Background="#FFE74C3C" Foreground="White"/>
             </StackPanel>
         </Grid>
 
         <!-- Right: Editor Panel -->
         <Border Grid.Column="1" BorderBrush="#FFCCCCCC" BorderThickness="1"
-                CornerRadius="4" Padding="15">
+                CornerRadius="4">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="15">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -189,6 +188,7 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="Gray" FontSize="11"/>
                 </Border>
             </Grid>
+            </ScrollViewer>
         </Border>
     </Grid>
 </Window>

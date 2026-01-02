@@ -4,7 +4,9 @@ using Microsoft.Win32;
 using Soundboard.Models;
 using Soundboard.Services.Interfaces;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Soundboard.ViewModels;
 
@@ -17,6 +19,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IHotkeyService _hotkeyService;
 
     private bool _isLearningHotkey;
+    private readonly DispatcherTimer _saveDebounceTimer;
 
     public ObservableCollection<TileViewModel> Tiles { get; } = new();
     public ObservableCollection<AudioDevice> OutputDevices { get; } = new();
@@ -58,6 +61,14 @@ public partial class MainViewModel : ObservableObject
         _audioEngine = audioEngine;
         _hotkeyService = hotkeyService;
 
+        // Debounced save timer (500ms delay to batch rapid changes)
+        _saveDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _saveDebounceTimer.Tick += async (_, _) =>
+        {
+            _saveDebounceTimer.Stop();
+            await _configService.SaveAsync();
+        };
+
         // Wire up events
         _audioEngine.TileStarted += OnTileStarted;
         _audioEngine.TileStopped += OnTileStopped;
@@ -80,6 +91,7 @@ public partial class MainViewModel : ObservableObject
         foreach (var tileConfig in _configService.Config.Tiles)
         {
             var tileVm = new TileViewModel(tileConfig, OnTileSelected);
+            tileVm.PropertyChanged += OnTilePropertyChanged;
             Tiles.Add(tileVm);
 
             // Register hotkey if configured
@@ -142,6 +154,17 @@ public partial class MainViewModel : ObservableObject
         {
             _isLearningHotkey = false;
             LearnHotkeyButtonText = "Learn";
+        }
+    }
+
+    private void OnTilePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Save config when tile properties that persist are changed
+        if (e.PropertyName is "Name" or "VolumePercent" or "AllowOverlap")
+        {
+            // Restart debounce timer
+            _saveDebounceTimer.Stop();
+            _saveDebounceTimer.Start();
         }
     }
 
@@ -323,11 +346,15 @@ public partial class MainViewModel : ObservableObject
     {
         _audioEngine.MonitorMasterVolume = value / 100f;
         _configService.Config.MonitorMasterVolume = value / 100f;
+        _saveDebounceTimer.Stop();
+        _saveDebounceTimer.Start();
     }
 
     partial void OnInjectVolumePercentChanged(int value)
     {
         _audioEngine.InjectMasterVolume = value / 100f;
         _configService.Config.InjectMasterVolume = value / 100f;
+        _saveDebounceTimer.Stop();
+        _saveDebounceTimer.Start();
     }
 }
