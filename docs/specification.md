@@ -44,7 +44,9 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
   - `StopOthers`: This sound cuts other sounds when played
   - `Protected`: This sound can't be cut by other sounds
 - **Volume model**: Per-tile volume + Master Monitor + Master Inject
+- **Tile click modes**: Toggle between Play (click to trigger) and Edit (click to select)
 - **App lifecycle**: Close hides to tray; Exit via tray menu
+- **Tray icon**: Left-click opens window, right-click shows menu (Open/Exit)
 - **Status messages**: Toast-style, visible 10 seconds then fade out
 
 ---
@@ -58,7 +60,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 | MVVM | CommunityToolkit.Mvvm 8.4.0 |
 | Audio | NAudio 2.2.1 (WASAPI shared mode) |
 | DI | Microsoft.Extensions.DependencyInjection 8.0.0 |
-| Tray | Hardcodet.NotifyIcon.Wpf 1.1.0 |
+| Tray | System.Windows.Forms.NotifyIcon (native) |
 | Hotkeys | Win32 RegisterHotKey with MOD_NOREPEAT |
 
 ---
@@ -113,11 +115,15 @@ sounds/
 - Voice system with fade envelopes
 - HotkeyService with Win32 integration
 - Hotkey reassignment (suspend/resume during learning)
-- MainWindow with 4x4 grid and editor panel
-- System tray icon with programmatic speaker icon
+- MainWindow with 4x4 grid and resizable editor panel
+- System tray icon (native WinForms) with left-click open, right-click menu
 - Close-to-tray behavior
 - Toast-style status messages with fade-out
 - Sound behavior toggles (StopOthers, Protected)
+- Play/Edit mode toggle for tile clicks
+- Progress bar animation on playing tiles
+- Stop All button with configurable hotkey
+- Per-tile stop button (visible during playback)
 
 ### Future Enhancements
 - Serilog logging integration
