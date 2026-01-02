@@ -231,9 +231,10 @@
                                          Style="{StaticResource ModeToggleStyle}"/>
                         </StackPanel>
                     </Border>
-                    <TextBlock Text="Left-click tiles to play or edit"
+                    <TextBlock Text="{Binding ModeHelpText}"
                                FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
-                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                               HorizontalAlignment="Center" Margin="0,2,0,0"
+                               TextAlignment="Center" Width="130" Height="26"/>
                 </StackPanel>
 
                 <!-- Stop All Section -->

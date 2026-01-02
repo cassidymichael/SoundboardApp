@@ -10,8 +10,8 @@ public class AppConfig
     public float MonitorMasterVolume { get; set; } = 1.0f;
     public float InjectMasterVolume { get; set; } = 1.0f;
 
-    // UI settings
-    public bool ClickToPlayEnabled { get; set; } = true;
+    // UI settings (default to Edit mode for new users)
+    public bool ClickToPlayEnabled { get; set; } = false;
 
     // Startup settings
     public bool StartWithWindows { get; set; } = false;

@@ -578,7 +578,12 @@ public partial class MainViewModel : ObservableObject
         _configService.Config.ClickToPlayEnabled = value;
         _ = _configService.SaveAsync();
         OnPropertyChanged(nameof(EditModeEnabled));
+        OnPropertyChanged(nameof(ModeHelpText));
     }
+
+    public string ModeHelpText => ClickToPlayEnabled
+        ? "Left-click tiles to play,\nright-click to edit"
+        : "Left-click tiles to edit";
 
     private void ShowStatus(string message)
     {
