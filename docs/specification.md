@@ -10,7 +10,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 - Dual-output playback:
   - **Inject output**: Voicemeeter AUX Input (routes into microphone/calls)
   - **Monitor output**: System Default (user hears playback)
-- Cut policy: default is "cut" (one at a time), max 4 simultaneous voices
+- Sound behavior: default is layering (simultaneous), configurable per-tile
 - Portable configuration: sounds copied into app's data directory
 - Close to tray; quit via tray menu
 
@@ -27,7 +27,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 - Low perceived latency (< 50ms)
 - Stable device routing with fallbacks
 - Simple UI (tile grid + editor panel)
-- Stop current / Stop all controls
+- Stop all control (panic button)
 
 ### Non-Goals (v1)
 - No mic ducking/sidechaining
@@ -40,9 +40,12 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 ## 3. Key UX Decisions
 
 - **Trigger behavior**: Pressing hotkey always restarts sound from beginning
-- **Cut behavior**: New sound stops current with 15ms fade-out
+- **Sound behavior**: Sounds layer by default (up to 4 simultaneous)
+  - `StopOthers`: This sound cuts other sounds when played
+  - `Protected`: This sound can't be cut by other sounds
 - **Volume model**: Per-tile volume + Master Monitor + Master Inject
 - **App lifecycle**: Close hides to tray; Exit via tray menu
+- **Status messages**: Toast-style, visible 10 seconds then fade out
 
 ---
 
@@ -84,8 +87,8 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 ```
 config.json
 sounds/
-  tile_00/clip.wav
-  tile_01/clip.mp3
+  tile_00/mysound.wav
+  tile_01/another.mp3
   ...
 ```
 
@@ -93,8 +96,8 @@ sounds/
 - App version
 - Device IDs (monitor, inject)
 - Master volumes
-- Hotkey bindings (16 tiles + stop current + stop all)
-- Tile configs (name, file path, volume, allow overlap)
+- Hotkey bindings (16 tiles + stop all)
+- Tile configs (name, file path, volume, stopOthers, protected)
 
 ---
 
@@ -106,12 +109,15 @@ sounds/
 - ConfigService with JSON persistence
 - DeviceEnumerator with hot-plug notifications
 - SoundLibrary with decode/cache
-- AudioEngine with dual output buses
+- AudioEngine with dual output buses and protected voice support
 - Voice system with fade envelopes
 - HotkeyService with Win32 integration
+- Hotkey reassignment (suspend/resume during learning)
 - MainWindow with 4x4 grid and editor panel
-- System tray icon with context menu
+- System tray icon with programmatic speaker icon
 - Close-to-tray behavior
+- Toast-style status messages with fade-out
+- Sound behavior toggles (StopOthers, Protected)
 
 ### Future Enhancements
 - Serilog logging integration

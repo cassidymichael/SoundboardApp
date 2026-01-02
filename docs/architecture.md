@@ -60,10 +60,10 @@ Sound File (WAV/MP3)
         ↓ (decode to float32/stereo/48kHz)
    AudioBuffer (in-memory PCM)
         ↓
-   AudioEngine.Play()
+   AudioEngine.Play(stopOthers, isProtected)
         ↓
    ┌─────────────────────────────────────┐
-   │  VoicePair                          │
+   │  VoicePair (IsProtected flag)       │
    │  ┌─────────────┐  ┌─────────────┐   │
    │  │ MonitorVoice│  │ InjectVoice │   │
    │  └──────┬──────┘  └──────┬──────┘   │
@@ -77,6 +77,20 @@ Sound File (WAV/MP3)
       Monitor Device    Inject Device
       (you hear it)   (Voicemeeter AUX)
 ```
+
+## Sound Behavior
+
+Each tile has two independent behavior flags:
+
+| StopOthers | Protected | Behavior |
+|------------|-----------|----------|
+| false | false | Normal layering (default) - plays alongside others |
+| false | true | Background/ambient - layers, immune to being cut |
+| true | false | Solo SFX - cuts others, can be cut |
+| true | true | Priority - cuts others, immune to being cut |
+
+- `FadeOutAllUnprotected()` skips voices with `IsProtected=true`
+- Voice cap (4 max) prefers killing unprotected voices first
 
 ## Hotkey System
 
@@ -93,14 +107,21 @@ Physical Keypress
         ↓
    ┌─────────────────────────────────────┐
    │ TileTriggered event                 │
-   │ StopCurrentTriggered event          │
    │ StopAllTriggered event              │
    └─────────────────────────────────────┘
         ↓
    MainViewModel handles event
         ↓
-   AudioEngine.Play() / StopCurrent() / StopAll()
+   AudioEngine.Play() / StopAll()
 ```
+
+### Hotkey Learning Mode
+When user clicks "Set" to assign a hotkey:
+1. `SuspendAll()` temporarily unregisters all hotkeys
+2. Window captures keypress via `PreviewKeyDown`
+3. If key already assigned to another tile, that tile is unbound
+4. `ResumeAll()` re-registers hotkeys with new assignment
+5. This allows reassigning keys already in use by other tiles
 
 ## Key Design Decisions
 
