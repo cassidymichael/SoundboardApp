@@ -6,7 +6,7 @@ using System.Windows;
 
 namespace Soundboard;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private ServiceProvider? _serviceProvider;
 
@@ -15,13 +15,13 @@ public partial class App : Application
         // Global exception handlers
         DispatcherUnhandledException += (s, e) =>
         {
-            MessageBox.Show($"Unhandled exception:\n\n{e.Exception}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Unhandled exception:\n\n{e.Exception}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         };
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
-            MessageBox.Show($"Fatal exception:\n\n{e.ExceptionObject}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Fatal exception:\n\n{e.ExceptionObject}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
         };
 
         try
@@ -32,7 +32,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Failed to initialize services:\n\n{ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Failed to initialize services:\n\n{ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Environment.Exit(1);
         }
     }
@@ -72,7 +72,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Startup failed:\n\n{ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Startup failed:\n\n{ex}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
     }

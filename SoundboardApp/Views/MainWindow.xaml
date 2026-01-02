@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Soundboard.ViewModels"
         xmlns:controls="clr-namespace:Soundboard.Views.Controls"
-        xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         Title="Soundboard"
         Height="600" Width="900"
@@ -15,27 +14,12 @@
 
     <!-- DataContext is set in code-behind from DI container -->
 
-    <!-- System Tray Icon -->
-    <Window.Resources>
-        <ContextMenu x:Key="TrayMenu">
-            <MenuItem Header="Open" Click="TrayIcon_Open"/>
-            <Separator/>
-            <MenuItem Header="Exit" Click="TrayIcon_Exit"/>
-        </ContextMenu>
-    </Window.Resources>
-
     <Grid Margin="10,10,10,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <!-- System Tray Icon (invisible, just for tray functionality) -->
-        <tb:TaskbarIcon x:Name="TrayIcon"
-                        ToolTipText="Soundboard"
-                        ContextMenu="{StaticResource TrayMenu}"
-                        TrayLeftMouseUp="TrayIcon_Click"/>
 
         <!-- Top: Tile Grid + Editor Panel -->
         <Grid Grid.Row="0">
@@ -100,6 +84,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" Text="{Binding SelectedTile.FileName, Mode=OneWay}"
                                          IsReadOnly="True" Height="26"/>
@@ -107,6 +92,9 @@
                                         Width="40" Height="26" Margin="4,0,0,0"/>
                                 <Button Grid.Column="2" Content="▶" Command="{Binding TestSoundCommand}"
                                         Width="26" Height="26" Margin="4,0,0,0" Padding="0" FontSize="12"/>
+                                <Button Grid.Column="3" Content="✕" Command="{Binding ClearSoundCommand}"
+                                        Width="26" Height="26" Margin="4,0,0,0" Padding="0" FontSize="10"
+                                        Background="#FFE74C3C" ToolTip="Clear sound"/>
                             </Grid>
 
                             <!-- Hotkey -->

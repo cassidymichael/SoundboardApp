@@ -7,7 +7,7 @@ using Soundboard.ViewModels;
 
 namespace Soundboard.Views.Controls;
 
-public partial class TileControl : UserControl
+public partial class TileControl : System.Windows.Controls.UserControl
 {
     private const double MaxAspectRatio = 2.0;
 
@@ -91,7 +91,7 @@ public partial class TileControl : UserControl
         if (e.OriginalSource is System.Windows.Controls.Primitives.ButtonBase)
         {
             // Click originated from inside a button's template - check if it's a child button
-            var source = e.Source as Button;
+            var source = e.Source as System.Windows.Controls.Button;
             if (source != null && source != TileButton)
             {
                 return; // Let the child button's Command handle it

@@ -143,7 +143,7 @@ public class AudioEngine : IAudioEngine
             _injectBus.AddVoice(injectVoice);
 
             // Notify UI
-            Application.Current?.Dispatcher.InvokeAsync(() => TileStarted?.Invoke(this, tileId));
+            System.Windows.Application.Current?.Dispatcher.InvokeAsync(() => TileStarted?.Invoke(this, tileId));
         }
     }
 
@@ -245,7 +245,7 @@ public class AudioEngine : IAudioEngine
         // Notify UI about stopped tiles (only if no other voice is playing for that tile)
         foreach (var tileId in tilesToNotify)
         {
-            Application.Current?.Dispatcher.InvokeAsync(() => TileStopped?.Invoke(this, tileId));
+            System.Windows.Application.Current?.Dispatcher.InvokeAsync(() => TileStopped?.Invoke(this, tileId));
         }
     }
 

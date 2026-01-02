@@ -5,34 +5,70 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using Forms = System.Windows.Forms;
 
 namespace Soundboard.Views;
 
 public partial class MainWindow : Window
 {
     private bool _isQuitting;
+    private readonly Forms.NotifyIcon _trayIcon;
 
     public MainWindow()
     {
         InitializeComponent();
 
         // Get ViewModel from DI container
-        var app = (App)Application.Current;
+        var app = (App)System.Windows.Application.Current;
         DataContext = app.GetService<MainViewModel>();
 
         // Handle keyboard input for hotkey learning
         PreviewKeyDown += OnPreviewKeyDown;
 
-        // Create tray icon and window icon
-        var icon = CreateTrayIcon();
-        TrayIcon.Icon = icon;
+        // Create icon for both tray and window
+        var icon = CreateIcon();
         Icon = Imaging.CreateBitmapSourceFromHIcon(
             icon.Handle,
             Int32Rect.Empty,
             BitmapSizeOptions.FromEmptyOptions());
+
+        // Create system tray icon
+        _trayIcon = new Forms.NotifyIcon
+        {
+            Icon = icon,
+            Text = "Soundboard",
+            Visible = true,
+            ContextMenuStrip = CreateTrayMenu()
+        };
+        _trayIcon.MouseClick += TrayIcon_MouseClick;
     }
 
-    private static Icon CreateTrayIcon()
+    private Forms.ContextMenuStrip CreateTrayMenu()
+    {
+        var menu = new Forms.ContextMenuStrip();
+
+        var openItem = new Forms.ToolStripMenuItem("Open");
+        openItem.Click += (s, e) => Dispatcher.Invoke(ShowFromTray);
+        menu.Items.Add(openItem);
+
+        menu.Items.Add(new Forms.ToolStripSeparator());
+
+        var exitItem = new Forms.ToolStripMenuItem("Exit");
+        exitItem.Click += (s, e) => Dispatcher.Invoke(ExitApplication);
+        menu.Items.Add(exitItem);
+
+        return menu;
+    }
+
+    private void TrayIcon_MouseClick(object? sender, Forms.MouseEventArgs e)
+    {
+        if (e.Button == Forms.MouseButtons.Left)
+        {
+            Dispatcher.Invoke(ShowFromTray);
+        }
+    }
+
+    private static Icon CreateIcon()
     {
         const int size = 32;
         using var bitmap = new Bitmap(size, size);
@@ -68,7 +104,7 @@ public partial class MainWindow : Window
         return System.Drawing.Icon.FromHandle(bitmap.GetHicon());
     }
 
-    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (DataContext is MainViewModel vm)
         {
@@ -86,10 +122,19 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ExitApplication()
+    {
+        _isQuitting = true;
+        _trayIcon.Visible = false;
+        _trayIcon.Dispose();
+        System.Windows.Application.Current.Shutdown();
+    }
+
     public void ForceClose()
     {
         _isQuitting = true;
-        TrayIcon?.Dispose();
+        _trayIcon.Visible = false;
+        _trayIcon.Dispose();
         Close();
     }
 
@@ -98,22 +143,5 @@ public partial class MainWindow : Window
         Show();
         WindowState = WindowState.Normal;
         Activate();
-    }
-
-    private void TrayIcon_Open(object sender, RoutedEventArgs e)
-    {
-        ShowFromTray();
-    }
-
-    private void TrayIcon_Exit(object sender, RoutedEventArgs e)
-    {
-        _isQuitting = true;
-        TrayIcon?.Dispose();
-        Application.Current.Shutdown();
-    }
-
-    private void TrayIcon_Click(object sender, RoutedEventArgs e)
-    {
-        ShowFromTray();
     }
 }

@@ -237,7 +237,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (SelectedTile == null) return;
 
-        var dialog = new OpenFileDialog
+        var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Select Sound File",
             Filter = "Audio Files|*.wav;*.mp3;*.ogg;*.flac|All Files|*.*"
@@ -452,9 +452,26 @@ public partial class MainViewModel : ObservableObject
         PlayTile(SelectedTile.Index);
     }
 
+    [RelayCommand]
+    private async Task ClearSound()
+    {
+        if (SelectedTile == null || !SelectedTile.HasSound) return;
+
+        var oldPath = SelectedTile.Config.FileRelativePath;
+        SelectedTile.SetSoundFile(string.Empty);
+
+        if (!string.IsNullOrEmpty(oldPath))
+        {
+            _soundLibrary.Invalidate(oldPath);
+        }
+
+        await _configService.SaveAsync();
+        ShowStatus("Sound cleared");
+    }
+
     private void OnTileTriggered(object? sender, int tileIndex)
     {
-        Application.Current?.Dispatcher.InvokeAsync(() => PlayTile(tileIndex));
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() => PlayTile(tileIndex));
     }
 
     private void PlayTile(int tileIndex)
@@ -498,12 +515,12 @@ public partial class MainViewModel : ObservableObject
 
     private void OnAudioError(object? sender, string message)
     {
-        Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
     }
 
     private void OnHotkeyRegistrationFailed(object? sender, string message)
     {
-        Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() => ShowStatus(message));
     }
 
     partial void OnSelectedMonitorDeviceChanged(AudioDevice? value)
