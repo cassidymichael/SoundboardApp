@@ -175,6 +175,16 @@ public class AudioEngine : IAudioEngine
         }
     }
 
+    public double GetProgress(int tileId)
+    {
+        lock (_voiceLock)
+        {
+            var pair = _activeVoices.FirstOrDefault(v =>
+                v.TileId == tileId && v.MonitorVoice.State == VoiceState.Playing);
+            return pair?.MonitorVoice.Progress ?? -1;
+        }
+    }
+
     private void FadeOutTile(int tileId)
     {
         foreach (var pair in _activeVoices.Where(v => v.TileId == tileId))
@@ -220,6 +230,7 @@ public class AudioEngine : IAudioEngine
     private void CleanupStoppedVoices()
     {
         List<VoicePair> toRemove;
+        HashSet<int> tilesToNotify;
 
         lock (_voiceLock)
         {
@@ -233,12 +244,18 @@ public class AudioEngine : IAudioEngine
                 _monitorBus.RemoveVoice(pair.MonitorVoice);
                 _injectBus.RemoveVoice(pair.InjectVoice);
             }
+
+            // Only notify for tiles that have NO remaining active voices
+            tilesToNotify = toRemove
+                .Select(p => p.TileId)
+                .Where(tileId => !_activeVoices.Any(v => v.TileId == tileId))
+                .ToHashSet();
         }
 
-        // Notify UI about stopped tiles
-        foreach (var pair in toRemove)
+        // Notify UI about stopped tiles (only if no other voice is playing for that tile)
+        foreach (var tileId in tilesToNotify)
         {
-            Application.Current?.Dispatcher.InvokeAsync(() => TileStopped?.Invoke(this, pair.TileId));
+            Application.Current?.Dispatcher.InvokeAsync(() => TileStopped?.Invoke(this, tileId));
         }
     }
 

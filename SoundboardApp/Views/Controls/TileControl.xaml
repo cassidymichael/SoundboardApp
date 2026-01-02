@@ -7,6 +7,7 @@
              d:DesignHeight="100" d:DesignWidth="100">
 
     <UserControl.Resources>
+        <!-- Main tile button style -->
         <Style x:Key="TileButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#FF3498DB"/>
             <Setter Property="Foreground" Value="White"/>
@@ -44,24 +45,17 @@
         </Style>
     </UserControl.Resources>
 
-    <Button Style="{StaticResource TileButtonStyle}"
-            Command="{Binding SelectCommand}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid>
+        <Button x:Name="TileButton" Style="{StaticResource TileButtonStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                </Grid.RowDefinitions>
 
-            <!-- Playing Indicator -->
-            <Ellipse Grid.Row="0" Width="12" Height="12"
-                     Fill="#FFFFFFFF" Opacity="0.8"
-                     HorizontalAlignment="Right" VerticalAlignment="Top"
-                     Margin="0,8,8,0"
-                     Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}}"/>
-
-            <!-- Tile Name -->
-            <TextBlock Grid.Row="1"
+                <!-- Tile Name -->
+                <TextBlock Grid.Row="0"
                        Text="{Binding Name}"
                        FontWeight="SemiBold"
                        FontSize="13"
@@ -69,15 +63,56 @@
                        TextWrapping="Wrap"
                        TextTrimming="CharacterEllipsis"
                        MaxHeight="36"
-                       Margin="6,0"/>
+                       Margin="6,8,6,0"
+                       VerticalAlignment="Center"/>
 
             <!-- Hotkey Label -->
-            <TextBlock Grid.Row="2"
+            <TextBlock Grid.Row="1"
                        Text="{Binding HotkeyDisplay}"
                        FontSize="10"
                        Opacity="0.7"
                        TextAlignment="Center"
-                       Margin="0,2,0,8"/>
-        </Grid>
-    </Button>
+                       Margin="0,2,0,0"/>
+
+                <!-- Progress Bar (bottom, uses ScaleTransform for smooth animation) -->
+                <Grid Grid.Row="2" Margin="6,0,6,4" Height="4"
+                      Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Border Background="#40000000" CornerRadius="2"/>
+                    <Border Background="White" CornerRadius="2"
+                            HorizontalAlignment="Stretch"
+                            RenderTransformOrigin="0,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform ScaleX="{Binding Progress}" ScaleY="1"/>
+                        </Border.RenderTransform>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Button>
+
+        <!-- Stop X button (top-right overlay, only when playing) -->
+        <Button Command="{Binding StopCommand}"
+                Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}}"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0,8,8,0"
+                Width="18" Height="18"
+                Padding="0" BorderThickness="0"
+                Background="#60000000" Cursor="Hand"
+                ToolTip="Stop">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4">
+                        <Path Data="M 0,0 L 8,8 M 8,0 L 0,8"
+                              Stroke="White" StrokeThickness="2"
+                              Margin="1,1,1,1"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#90000000"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </Grid>
 </UserControl>

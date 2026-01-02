@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private bool _isLearningHotkey;
     private readonly DispatcherTimer _saveDebounceTimer;
     private readonly DispatcherTimer _statusFadeTimer;
+    private readonly DispatcherTimer _progressTimer;
     private DateTime _statusSetTime;
 
     public ObservableCollection<TileViewModel> Tiles { get; } = new();
@@ -53,6 +54,15 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _learnHotkeyButtonText = "Set";
 
+    [ObservableProperty]
+    private bool _clickToPlayEnabled = true;
+
+    public bool EditModeEnabled
+    {
+        get => !ClickToPlayEnabled;
+        set => ClickToPlayEnabled = !value;
+    }
+
     public MainViewModel(
         IConfigService configService,
         IDeviceEnumerator deviceEnumerator,
@@ -78,6 +88,11 @@ public partial class MainViewModel : ObservableObject
         _statusFadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _statusFadeTimer.Tick += OnStatusFadeTick;
 
+        // Progress update timer (updates tile progress bars)
+        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+        _progressTimer.Tick += OnProgressTick;
+        _progressTimer.Start();
+
         // Wire up events
         _audioEngine.TileStarted += OnTileStarted;
         _audioEngine.TileStopped += OnTileStopped;
@@ -99,7 +114,7 @@ public partial class MainViewModel : ObservableObject
         // Initialize tiles from config
         foreach (var tileConfig in _configService.Config.Tiles)
         {
-            var tileVm = new TileViewModel(tileConfig, OnTileSelected);
+            var tileVm = new TileViewModel(tileConfig, OnTileSelected, OnTilePlay, OnTileStop);
             tileVm.PropertyChanged += OnTilePropertyChanged;
             Tiles.Add(tileVm);
 
@@ -113,6 +128,9 @@ public partial class MainViewModel : ObservableObject
         // Set master volumes
         MonitorVolumePercent = (int)(_configService.Config.MonitorMasterVolume * 100);
         InjectVolumePercent = (int)(_configService.Config.InjectMasterVolume * 100);
+
+        // Set UI settings
+        ClickToPlayEnabled = _configService.Config.ClickToPlayEnabled;
 
         // Set selected devices
         SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == _configService.Config.MonitorDeviceId)
@@ -164,6 +182,25 @@ public partial class MainViewModel : ObservableObject
             _isLearningHotkey = false;
             LearnHotkeyButtonText = "Set";
             _hotkeyService.ResumeAll();
+        }
+    }
+
+    private void OnTilePlay(TileViewModel tile)
+    {
+        PlayTile(tile.Index);
+    }
+
+    private void OnTileStop(TileViewModel tile)
+    {
+        _audioEngine.StopTile(tile.Index);
+    }
+
+    private void OnProgressTick(object? sender, EventArgs e)
+    {
+        foreach (var tile in Tiles.Where(t => t.IsPlaying))
+        {
+            var progress = _audioEngine.GetProgress(tile.Index);
+            tile.Progress = progress >= 0 ? progress : 0;
         }
     }
 
@@ -355,6 +392,7 @@ public partial class MainViewModel : ObservableObject
         if (tileIndex >= 0 && tileIndex < Tiles.Count)
         {
             Tiles[tileIndex].IsPlaying = false;
+            Tiles[tileIndex].Progress = 0;
         }
     }
 
@@ -399,6 +437,13 @@ public partial class MainViewModel : ObservableObject
         _configService.Config.InjectMasterVolume = value / 100f;
         _saveDebounceTimer.Stop();
         _saveDebounceTimer.Start();
+    }
+
+    partial void OnClickToPlayEnabledChanged(bool value)
+    {
+        _configService.Config.ClickToPlayEnabled = value;
+        _ = _configService.SaveAsync();
+        OnPropertyChanged(nameof(EditModeEnabled));
     }
 
     private void ShowStatus(string message)

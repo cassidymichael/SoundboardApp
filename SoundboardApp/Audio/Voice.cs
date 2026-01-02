@@ -22,6 +22,10 @@ public class Voice : ISampleProvider
     public VoiceState State { get; private set; }
     public WaveFormat WaveFormat => _buffer.Format;
 
+    public double Progress => _buffer.Data.Length > 0
+        ? (double)_position / _buffer.Data.Length
+        : 0;
+
     public Voice(int tileId, AudioBuffer buffer, float tileVolume, float masterVolume)
     {
         TileId = tileId;

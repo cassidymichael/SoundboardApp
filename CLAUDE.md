@@ -2,6 +2,10 @@
 
 Windows soundboard for games, Discord, and streaming. Plays sounds via hotkeys to dual audio outputs (monitor + virtual mic).
 
+## Dev Workflow
+- **Do not run `dotnet build`** - ask the user to build in Visual Studio instead
+- User will test and report any build errors or runtime issues
+
 ## Tech Stack
 - .NET 10.0 Windows, WPF, MVVM (CommunityToolkit.Mvvm)
 - NAudio for WASAPI audio playback

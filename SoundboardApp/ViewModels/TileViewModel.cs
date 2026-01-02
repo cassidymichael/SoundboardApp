@@ -9,6 +9,8 @@ public partial class TileViewModel : ObservableObject
 {
     private readonly TileConfig _config;
     private readonly Action<TileViewModel> _onSelect;
+    private readonly Action<TileViewModel>? _onPlay;
+    private readonly Action<TileViewModel>? _onStop;
 
     public int Index => _config.Index;
 
@@ -37,16 +39,24 @@ public partial class TileViewModel : ObservableObject
     private bool _isSelected;
 
     [ObservableProperty]
+    private double _progress;
+
+    [ObservableProperty]
     private bool _hasSound;
 
     public float Volume => VolumePercent / 100f;
 
     public TileConfig Config => _config;
 
-    public TileViewModel(TileConfig config, Action<TileViewModel> onSelect)
+    public TileViewModel(TileConfig config,
+        Action<TileViewModel> onSelect,
+        Action<TileViewModel>? onPlay = null,
+        Action<TileViewModel>? onStop = null)
     {
         _config = config;
         _onSelect = onSelect;
+        _onPlay = onPlay;
+        _onStop = onStop;
 
         // Initialize from config
         Name = config.Name;
@@ -66,6 +76,18 @@ public partial class TileViewModel : ObservableObject
     private void Select()
     {
         _onSelect(this);
+    }
+
+    [RelayCommand]
+    private void Play()
+    {
+        _onPlay?.Invoke(this);
+    }
+
+    [RelayCommand]
+    private void Stop()
+    {
+        _onStop?.Invoke(this);
     }
 
     public void UpdateConfig()
