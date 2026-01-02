@@ -9,12 +9,9 @@ namespace Soundboard.Views.Controls;
 
 public partial class TileControl : System.Windows.Controls.UserControl
 {
-    private const double MaxAspectRatio = 2.0;
-
     public TileControl()
     {
         InitializeComponent();
-        SizeChanged += OnSizeChanged;
         MouseRightButtonUp += OnRightClick;
         TileButton.Click += OnTileButtonClick;
         DataContextChanged += OnDataContextChanged;
@@ -62,15 +59,6 @@ public partial class TileControl : System.Windows.Controls.UserControl
             // Stop animation and reset
             ProgressScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, null);
             ProgressScale.ScaleX = 0;
-        }
-    }
-
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        // Limit height to 2x width to prevent overly tall tiles
-        if (e.NewSize.Width > 0)
-        {
-            MaxHeight = e.NewSize.Width * MaxAspectRatio;
         }
     }
 
