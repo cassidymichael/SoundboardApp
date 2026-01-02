@@ -42,15 +42,14 @@ Output: `SoundboardApp\publish\Soundboard.exe`
 # Build both portable zip and installer (default)
 .\build.ps1
 
-# With specific version number
-.\build.ps1 -Version "1.2.0"
-
 # Portable zip only (no Inno Setup required)
 .\build.ps1 -Portable
 
 # Installer only
 .\build.ps1 -Installer
 ```
+
+Version is read automatically from `<Version>` in `SoundboardApp.csproj`.
 
 ### Output Files
 

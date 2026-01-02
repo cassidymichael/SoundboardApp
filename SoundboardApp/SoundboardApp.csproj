@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Soundboard</AssemblyName>
     <RootNamespace>Soundboard</RootNamespace>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

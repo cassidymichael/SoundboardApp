@@ -2,8 +2,6 @@ namespace Soundboard.Models;
 
 public class AppConfig
 {
-    public string Version { get; set; } = "1.0.0";
-
     // Device settings
     public string MonitorDeviceId { get; set; } = "default";
     public string? InjectDeviceId { get; set; }

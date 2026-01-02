@@ -1,5 +1,6 @@
 ; Soundboard Inno Setup Script
 ; Compile with: ISCC.exe soundboard.iss
+; NOTE: Keep MyAppVersion in sync with <Version> in SoundboardApp.csproj
 
 #define MyAppName "Soundboard"
 #define MyAppVersion "1.0.3"
@@ -50,8 +51,5 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: st
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
-
-
-
 
 

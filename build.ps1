@@ -4,13 +4,19 @@
 param(
     [switch]$Portable,
     [switch]$Installer,
-    [switch]$All,
-    [string]$Version = "1.0.0"
+    [switch]$All
 )
 
 $ErrorActionPreference = "Stop"
 
 $ProjectDir = "$PSScriptRoot\SoundboardApp"
+
+# Read version from csproj
+$csproj = [xml](Get-Content "$ProjectDir\SoundboardApp.csproj")
+$Version = $csproj.Project.PropertyGroup.Version
+if (-not $Version) {
+    throw "Version not found in csproj. Add <Version>x.y.z</Version> to PropertyGroup."
+}
 $PublishDir = "$PSScriptRoot\publish"
 $DistDir = "$PSScriptRoot\dist"
 $InstallerDir = "$PSScriptRoot\installer"
@@ -45,7 +51,7 @@ function Publish-App {
         }
     }
 
-    # Publish self-contained single-file
+    # Publish self-contained single-file (version comes from csproj)
     dotnet publish $ProjectDir `
         -c Release `
         -r win-x64 `
@@ -53,7 +59,6 @@ function Publish-App {
         -p:PublishSingleFile=true `
         -p:IncludeNativeLibrariesForSelfExtract=true `
         -p:DebugType=none `
-        -p:Version=$Version `
         -o $PublishDir
 
     if ($LASTEXITCODE -ne 0) {
