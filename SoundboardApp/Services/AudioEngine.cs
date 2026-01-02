@@ -175,16 +175,6 @@ public class AudioEngine : IAudioEngine
         }
     }
 
-    public double GetProgress(int tileId)
-    {
-        lock (_voiceLock)
-        {
-            var pair = _activeVoices.FirstOrDefault(v =>
-                v.TileId == tileId && v.MonitorVoice.State == VoiceState.Playing);
-            return pair?.MonitorVoice.Progress ?? -1;
-        }
-    }
-
     private void FadeOutTile(int tileId)
     {
         foreach (var pair in _activeVoices.Where(v => v.TileId == tileId))

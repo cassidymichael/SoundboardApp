@@ -21,7 +21,6 @@ public partial class MainViewModel : ObservableObject
     private bool _isLearningHotkey;
     private readonly DispatcherTimer _saveDebounceTimer;
     private readonly DispatcherTimer _statusFadeTimer;
-    private readonly DispatcherTimer _progressTimer;
     private DateTime _statusSetTime;
 
     public ObservableCollection<TileViewModel> Tiles { get; } = new();
@@ -87,11 +86,6 @@ public partial class MainViewModel : ObservableObject
         // Status fade timer (updates every 50ms for smooth fade)
         _statusFadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _statusFadeTimer.Tick += OnStatusFadeTick;
-
-        // Progress update timer (updates tile progress bars)
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-        _progressTimer.Tick += OnProgressTick;
-        _progressTimer.Start();
 
         // Wire up events
         _audioEngine.TileStarted += OnTileStarted;
@@ -193,15 +187,6 @@ public partial class MainViewModel : ObservableObject
     private void OnTileStop(TileViewModel tile)
     {
         _audioEngine.StopTile(tile.Index);
-    }
-
-    private void OnProgressTick(object? sender, EventArgs e)
-    {
-        foreach (var tile in Tiles.Where(t => t.IsPlaying))
-        {
-            var progress = _audioEngine.GetProgress(tile.Index);
-            tile.Progress = progress >= 0 ? progress : 0;
-        }
     }
 
     private void OnTilePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -376,6 +361,9 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        // Reset to 0 first to force PropertyChanged even if duration is the same (for restarts)
+        tile.ClipDurationSeconds = 0;
+        tile.ClipDurationSeconds = buffer.Duration.TotalSeconds;
         _audioEngine.Play(tileIndex, buffer, tile.Volume, tile.StopOthers, tile.Protected);
     }
 
@@ -392,7 +380,6 @@ public partial class MainViewModel : ObservableObject
         if (tileIndex >= 0 && tileIndex < Tiles.Count)
         {
             Tiles[tileIndex].IsPlaying = false;
-            Tiles[tileIndex].Progress = 0;
         }
     }
 

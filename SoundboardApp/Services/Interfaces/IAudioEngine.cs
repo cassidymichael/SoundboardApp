@@ -23,8 +23,6 @@ public interface IAudioEngine : IDisposable
     void StopCurrent();
     void StopAll();
 
-    double GetProgress(int tileId);
-
     event EventHandler<int>? TileStarted;
     event EventHandler<int>? TileStopped;
     event EventHandler<string>? Error;

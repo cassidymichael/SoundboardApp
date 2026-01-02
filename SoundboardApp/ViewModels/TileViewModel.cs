@@ -39,7 +39,7 @@ public partial class TileViewModel : ObservableObject
     private bool _isSelected;
 
     [ObservableProperty]
-    private double _progress;
+    private double _clipDurationSeconds;
 
     [ObservableProperty]
     private bool _hasSound;
