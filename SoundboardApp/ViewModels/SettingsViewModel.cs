@@ -16,6 +16,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _startMinimized;
 
+    [ObservableProperty]
+    private bool _closeToTray;
+
     public SettingsViewModel(IConfigService configService)
     {
         _configService = configService;
@@ -23,6 +26,7 @@ public partial class SettingsViewModel : ObservableObject
         // Load current settings
         StartWithWindows = _configService.Config.StartWithWindows;
         StartMinimized = _configService.Config.StartMinimized;
+        CloseToTray = _configService.Config.CloseToTray;
     }
 
     partial void OnStartWithWindowsChanged(bool value)
@@ -35,6 +39,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnStartMinimizedChanged(bool value)
     {
         _configService.Config.StartMinimized = value;
+        _ = _configService.SaveAsync();
+    }
+
+    partial void OnCloseToTrayChanged(bool value)
+    {
+        _configService.Config.CloseToTray = value;
         _ = _configService.SaveAsync();
     }
 

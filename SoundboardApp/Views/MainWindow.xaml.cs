@@ -160,9 +160,23 @@ public partial class MainWindow : Window
     {
         if (!_isQuitting)
         {
-            // Hide to tray instead of closing
-            e.Cancel = true;
-            Hide();
+            var app = (App)System.Windows.Application.Current;
+            var configService = app.GetService<Services.Interfaces.IConfigService>();
+
+            if (configService.Config.CloseToTray)
+            {
+                // Hide to tray instead of closing
+                e.Cancel = true;
+                Hide();
+            }
+            else
+            {
+                // Full close
+                _isQuitting = true;
+                _trayIcon.Visible = false;
+                _trayIcon.Dispose();
+                System.Windows.Application.Current.Shutdown();
+            }
         }
     }
 

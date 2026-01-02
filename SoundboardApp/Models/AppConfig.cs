@@ -16,6 +16,7 @@ public class AppConfig
     // Startup settings
     public bool StartWithWindows { get; set; } = false;
     public bool StartMinimized { get; set; } = false;
+    public bool CloseToTray { get; set; } = true;
 
     // Global hotkeys
     public HotkeyBinding? StopCurrentHotkey { get; set; }
