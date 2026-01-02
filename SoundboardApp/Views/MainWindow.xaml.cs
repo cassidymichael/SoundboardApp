@@ -53,11 +53,47 @@ public partial class MainWindow : Window
 
         menu.Items.Add(new Forms.ToolStripSeparator());
 
+        var settingsItem = new Forms.ToolStripMenuItem("Settings");
+        settingsItem.Click += (s, e) => Dispatcher.Invoke(ShowSettings);
+        menu.Items.Add(settingsItem);
+
+        var aboutItem = new Forms.ToolStripMenuItem("About");
+        aboutItem.Click += (s, e) => Dispatcher.Invoke(ShowAbout);
+        menu.Items.Add(aboutItem);
+
+        menu.Items.Add(new Forms.ToolStripSeparator());
+
         var exitItem = new Forms.ToolStripMenuItem("Exit");
         exitItem.Click += (s, e) => Dispatcher.Invoke(ExitApplication);
         menu.Items.Add(exitItem);
 
         return menu;
+    }
+
+    public void ShowSettings()
+    {
+        ShowFromTray();
+        var app = (App)System.Windows.Application.Current;
+        var settingsVm = app.GetService<ViewModels.SettingsViewModel>();
+        var settingsWindow = new SettingsWindow { DataContext = settingsVm, Owner = this };
+        settingsWindow.ShowDialog();
+    }
+
+    public void ShowAbout()
+    {
+        ShowFromTray();
+        var aboutWindow = new AboutWindow { Owner = this };
+        aboutWindow.ShowDialog();
+    }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowSettings();
+    }
+
+    private void AboutButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowAbout();
     }
 
     private void TrayIcon_MouseClick(object? sender, Forms.MouseEventArgs e)

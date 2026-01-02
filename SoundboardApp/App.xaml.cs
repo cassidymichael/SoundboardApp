@@ -48,6 +48,7 @@ public partial class App : System.Windows.Application
 
         // ViewModels
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<SettingsViewModel>();
     }
 
     public T GetService<T>() where T : class
@@ -65,10 +66,21 @@ public partial class App : System.Windows.Application
             var configService = _serviceProvider!.GetRequiredService<IConfigService>();
             await configService.LoadAsync();
 
-            // Create and show the main window
+            // Create main window
             var mainWindow = new Views.MainWindow();
             MainWindow = mainWindow;
-            mainWindow.Show();
+
+            // Check if we should start minimized
+            if (configService.Config.StartMinimized)
+            {
+                // Don't show window, it will be hidden to tray
+                mainWindow.WindowState = WindowState.Minimized;
+                mainWindow.ShowInTaskbar = false;
+            }
+            else
+            {
+                mainWindow.Show();
+            }
         }
         catch (Exception ex)
         {

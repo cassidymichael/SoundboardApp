@@ -15,6 +15,10 @@ public class AppConfig
     // UI settings
     public bool ClickToPlayEnabled { get; set; } = true;
 
+    // Startup settings
+    public bool StartWithWindows { get; set; } = false;
+    public bool StartMinimized { get; set; } = false;
+
     // Global hotkeys
     public HotkeyBinding? StopCurrentHotkey { get; set; }
     public HotkeyBinding? StopAllHotkey { get; set; }
