@@ -2,13 +2,13 @@
 ; Compile with: ISCC.exe soundboard.iss
 
 #define MyAppName "Soundboard"
-#define MyAppVersion "1.0.0"
-#define MyAppPublisher "Your Name"
+#define MyAppVersion "1.0.1"
+#define MyAppPublisher "Michael Cassidy"
 #define MyAppExeName "Soundboard.exe"
-#define MyAppURL "https://github.com/yourusername/soundboard"
+#define MyAppURL "https://github.com/cassidymichael/SoundboardApp"
 
 [Setup]
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppId={{b0fda393-8b65-432f-9a57-6c41282d0562}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -50,4 +50,6 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: st
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+
+
 
