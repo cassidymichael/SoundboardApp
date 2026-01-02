@@ -135,13 +135,15 @@ public partial class MainViewModel : ObservableObject
         // Set UI settings
         ClickToPlayEnabled = _configService.Config.ClickToPlayEnabled;
 
-        // Set selected devices
+        // Set selected devices (fallback to System Default for monitor, not None)
         SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == _configService.Config.MonitorDeviceId)
-                               ?? OutputDevices.FirstOrDefault();
+                               ?? OutputDevices.FirstOrDefault(d => d.Id == "default");
         SelectedInjectDevice = OutputDevices.FirstOrDefault(d => d.Id == _configService.Config.InjectDeviceId);
 
-        // Initialize audio engine
-        _audioEngine.Initialize(SelectedMonitorDevice?.Id, SelectedInjectDevice?.Id);
+        // Initialize audio engine (convert "none" to null)
+        var monitorId = SelectedMonitorDevice?.Id == "none" ? null : SelectedMonitorDevice?.Id;
+        var injectId = SelectedInjectDevice?.Id == "none" ? null : SelectedInjectDevice?.Id;
+        _audioEngine.Initialize(monitorId, injectId);
 
         // Register global hotkeys
         if (_configService.Config.StopCurrentHotkey != null)
@@ -167,8 +169,9 @@ public partial class MainViewModel : ObservableObject
             OutputDevices.Add(device);
         }
 
-        // Restore selection
-        SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == currentMonitor) ?? OutputDevices.FirstOrDefault();
+        // Restore selection (fallback to System Default for monitor, not None)
+        SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == currentMonitor)
+                               ?? OutputDevices.FirstOrDefault(d => d.Id == "default");
         SelectedInjectDevice = OutputDevices.FirstOrDefault(d => d.Id == currentInject);
     }
 
@@ -544,7 +547,8 @@ public partial class MainViewModel : ObservableObject
     {
         if (value != null)
         {
-            _audioEngine.SetMonitorDevice(value.Id);
+            var deviceId = value.Id == "none" ? null : value.Id;
+            _audioEngine.SetMonitorDevice(deviceId);
             _configService.Config.MonitorDeviceId = value.Id;
             _ = _configService.SaveAsync();
         }
@@ -552,7 +556,8 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnSelectedInjectDeviceChanged(AudioDevice? value)
     {
-        _audioEngine.SetInjectDevice(value?.Id);
+        var deviceId = value?.Id == "none" ? null : value?.Id;
+        _audioEngine.SetInjectDevice(deviceId);
         _configService.Config.InjectDeviceId = value?.Id;
         _ = _configService.SaveAsync();
     }

@@ -14,6 +14,7 @@ public class AudioDevice
     }
 
     public static AudioDevice Default => new("default", "System Default", true);
+    public static AudioDevice None => new("none", "None", false);
 
     public override string ToString() => Name;
 

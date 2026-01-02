@@ -64,6 +64,14 @@ public class OutputBus : IDisposable
         }
     }
 
+    public void Disable()
+    {
+        lock (_lock)
+        {
+            Cleanup();
+        }
+    }
+
     private void Cleanup()
     {
         if (_output != null)

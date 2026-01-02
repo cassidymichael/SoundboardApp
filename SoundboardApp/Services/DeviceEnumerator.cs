@@ -22,7 +22,7 @@ public class DeviceEnumerator : IDeviceEnumerator
 
     public IReadOnlyList<AudioDevice> GetOutputDevices()
     {
-        var devices = new List<AudioDevice> { AudioDevice.Default };
+        var devices = new List<AudioDevice> { AudioDevice.None, AudioDevice.Default };
 
         try
         {
@@ -42,6 +42,11 @@ public class DeviceEnumerator : IDeviceEnumerator
 
     public AudioDevice? GetDeviceById(string id)
     {
+        if (id == "none")
+        {
+            return AudioDevice.None;
+        }
+
         if (string.IsNullOrEmpty(id) || id == "default")
         {
             return AudioDevice.Default;

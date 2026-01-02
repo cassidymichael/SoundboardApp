@@ -58,12 +58,23 @@ public class AudioEngine : IAudioEngine
 
     public void SetMonitorDevice(string? deviceId)
     {
+        if (string.IsNullOrEmpty(deviceId))
+        {
+            // No monitor device configured
+            _monitorBus.Disable();
+            return;
+        }
+
         try
         {
-            var device = GetDevice(deviceId) ?? GetDevice("default");
+            var device = GetDevice(deviceId);
             if (device != null)
             {
                 _monitorBus.Initialize(device);
+            }
+            else
+            {
+                Error?.Invoke(this, $"Monitor device not found: {deviceId}");
             }
         }
         catch (Exception ex)
@@ -76,17 +87,8 @@ public class AudioEngine : IAudioEngine
     {
         if (string.IsNullOrEmpty(deviceId))
         {
-            // Try to find Voicemeeter AUX
-            var vmDevice = _deviceEnumerator.FindVoicemeeterAux();
-            if (vmDevice != null)
-            {
-                deviceId = vmDevice.Id;
-            }
-        }
-
-        if (string.IsNullOrEmpty(deviceId))
-        {
             // No inject device configured
+            _injectBus.Disable();
             return;
         }
 
