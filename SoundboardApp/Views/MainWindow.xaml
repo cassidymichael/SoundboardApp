@@ -35,7 +35,7 @@
         <tb:TaskbarIcon x:Name="TrayIcon"
                         ToolTipText="Soundboard"
                         ContextMenu="{StaticResource TrayMenu}"
-                        TrayMouseDoubleClick="TrayIcon_DoubleClick"/>
+                        TrayLeftMouseUp="TrayIcon_Click"/>
 
         <!-- Top: Tile Grid + Editor Panel -->
         <Grid Grid.Row="0">
@@ -77,11 +77,14 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" Text="{Binding SelectedTile.FileName, Mode=OneWay}"
                                          IsReadOnly="True" Height="26"/>
                                 <Button Grid.Column="1" Content="..." Command="{Binding ImportSoundCommand}"
                                         Width="40" Height="26" Margin="4,0,0,0"/>
+                                <Button Grid.Column="2" Content="▶" Command="{Binding TestSoundCommand}"
+                                        Width="26" Height="26" Margin="4,0,0,0" Padding="0" FontSize="12"/>
                             </Grid>
 
                             <!-- Hotkey -->
@@ -130,9 +133,6 @@
                                            Foreground="Gray" FontSize="10" Margin="18,2,0,0"/>
                             </StackPanel>
 
-                            <!-- Test Button -->
-                            <Button Content="Test Sound" Command="{Binding TestSoundCommand}"
-                                    Height="28" Margin="0,8,0,0"/>
                         </StackPanel>
 
                         <!-- No Tile Selected -->
