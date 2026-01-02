@@ -5,6 +5,7 @@ Windows soundboard for games, Discord, and streaming. Plays sounds via hotkeys t
 ## Dev Workflow
 - **Do not run `dotnet build`** - ask the user to build in Visual Studio instead
 - User will test and report any build errors or runtime issues
+- **Versioning**: Set `<Version>` in `SoundboardApp/SoundboardApp.csproj`
 
 ## Tech Stack
 - .NET 10.0 Windows, WPF, MVVM (CommunityToolkit.Mvvm)

@@ -3,7 +3,7 @@
 ; NOTE: Keep MyAppVersion in sync with <Version> in SoundboardApp.csproj
 
 #define MyAppName "Soundboard"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "Michael Cassidy"
 #define MyAppExeName "Soundboard.exe"
 #define MyAppURL "https://github.com/cassidymichael/SoundboardApp"
@@ -51,6 +51,7 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: st
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+
 
 
 
