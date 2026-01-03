@@ -1,5 +1,7 @@
 # Soundboard App
 
+> **Note:** This is a quick personal project. AI (Claude) was heavily used in its creation, though all code has been reviewed and tested by me.
+
 A Windows soundboard application for real-time use in games, Discord, Microsoft Teams, and streaming setups.
 
 ## Features
