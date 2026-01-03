@@ -11,7 +11,7 @@ A Windows soundboard application for real-time use in games, Discord, Microsoft 
   - **Inject** - Routes to Voicemeeter/virtual mic for calls and streams
 - **Low Latency** - Audio decoded and cached in memory for instant playback
 - **Click-Free Playback** - 15ms fade-out prevents audio clicks when stopping sounds
-- **Close to Tray** - Window hides to system tray; right-click tray icon to exit
+- **System Tray** - Minimizes to tray; right-click to exit
 
 ## Requirements
 
@@ -24,8 +24,8 @@ A Windows soundboard application for real-time use in games, Discord, Microsoft 
 1. Open `SoundboardApp.slnx` in Visual Studio 2022+
 2. Build and run (F5)
 3. Click a tile to select it
-4. Click "Browse" to import a sound file (WAV, MP3, OGG, FLAC)
-5. Click "Learn" and press a key to assign a hotkey
+4. Click "Browse" to select a sound file (WAV, MP3, OGG, FLAC)
+5. Click "Set" and press a key to assign a hotkey
 6. Select output devices from the dropdowns
 
 ## Project Structure
@@ -50,34 +50,25 @@ SoundboardApp/
 | MVVM | CommunityToolkit.Mvvm |
 | Audio | NAudio (WASAPI) |
 | DI | Microsoft.Extensions.DependencyInjection |
-| Tray Icon | Hardcodet.NotifyIcon.Wpf |
+| Tray Icon | Windows Forms NotifyIcon |
 
 ## Configuration
 
-Settings are stored in `%AppData%\Soundboard\`:
-- `config.json` - App configuration
-- `sounds/` - Imported sound files (copied on import)
+Settings are stored in `%AppData%\Soundboard\config.json`. Sound files are referenced by absolute path (not copied).
 
 ## Usage
 
 ### Tile Controls
 - **Click tile** - Select for editing
-- **Browse** - Import a sound file
-- **Learn** - Capture a hotkey
+- **Browse** - Select a sound file
+- **Set** - Capture a hotkey
 - **Volume slider** - Per-tile volume
-- **Allow overlap** - Let this tile play over others
 
 ### Global Controls
-- **Stop Current** - Stop the most recent sound
 - **Stop All** - Panic button - stops everything
 - **Monitor/Inject dropdowns** - Select output devices
 - **Master volume sliders** - Control overall output levels
 
-### Tray Icon
-- **Double-click** - Restore window
-- **Right-click > Open** - Restore window
-- **Right-click > Exit** - Quit the application
-
 ## License
 
-Private project.
+MIT License - see [LICENSE](LICENSE) for details.
