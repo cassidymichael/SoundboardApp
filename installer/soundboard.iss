@@ -1,9 +1,8 @@
 ; Soundboard Inno Setup Script
 ; Compile with: ISCC.exe soundboard.iss
-; NOTE: Keep MyAppVersion in sync with <Version> in SoundboardApp.csproj
 
 #define MyAppName "Soundboard"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.0.6"
 #define MyAppPublisher "Michael Cassidy"
 #define MyAppExeName "Soundboard.exe"
 #define MyAppURL "https://github.com/cassidymichael/SoundboardApp"
@@ -31,6 +30,19 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ; Uninstaller
 UninstallDisplayIcon={app}\{#MyAppExeName}
+; Installer/uninstaller icon
+SetupIconFile=..\SoundboardApp\app.ico
+; Handle upgrades - close app if running
+CloseApplications=yes
+; Version info for Windows file properties
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Installer
+; 64-bit only
+ArchitecturesInstallIn64BitMode=x64compatible
+ArchitecturesAllowed=x64compatible
+; Skip program group page (users find apps via Start menu search)
+DisableProgramGroupPage=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -51,6 +63,11 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: st
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+
+
+
+
+
 
 
 

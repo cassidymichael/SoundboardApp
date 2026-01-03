@@ -69,7 +69,7 @@ function Publish-App {
 }
 
 function New-PortableZip {
-    Write-Step "Creating portable ZIP"
+    Write-Step "Creating portable zip"
 
     if (-not (Test-Path $DistDir)) {
         New-Item -ItemType Directory -Path $DistDir | Out-Null
@@ -81,9 +81,11 @@ function New-PortableZip {
         Remove-Item $zipPath -Force
     }
 
-    Compress-Archive -Path "$PublishDir\*" -DestinationPath $zipPath
+    # Use maximum compression
+    Compress-Archive -Path "$PublishDir\Soundboard.exe" -DestinationPath $zipPath -CompressionLevel Optimal
 
-    Write-Host "Created: $zipPath" -ForegroundColor Green
+    $zipSize = [math]::Round((Get-Item $zipPath).Length / 1MB, 1)
+    Write-Host "Created: $zipPath ($zipSize MB)" -ForegroundColor Green
 }
 
 function New-Installer {

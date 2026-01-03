@@ -114,38 +114,13 @@ public partial class MainWindow : Window
 
     private static Icon CreateIcon()
     {
-        const int size = 32;
-        using var bitmap = new Bitmap(size, size);
-        using var g = Graphics.FromImage(bitmap);
-
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        g.Clear(Color.Transparent);
-
-        // Draw a simple speaker shape
-        using var brush = new SolidBrush(Color.FromArgb(70, 130, 180)); // Steel blue
-        using var pen = new Pen(Color.White, 1.5f);
-
-        // Speaker body (rectangle)
-        var speakerBody = new Rectangle(6, 10, 8, 12);
-        g.FillRectangle(brush, speakerBody);
-        g.DrawRectangle(pen, speakerBody);
-
-        // Speaker cone (triangle pointing right)
-        var cone = new System.Drawing.Point[]
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("Soundboard.app.ico");
+        if (stream != null)
         {
-            new(14, 10),
-            new(22, 4),
-            new(22, 28),
-            new(14, 22)
-        };
-        g.FillPolygon(brush, cone);
-        g.DrawPolygon(pen, cone);
-
-        // Sound waves (arcs)
-        using var wavePen = new Pen(Color.White, 2f);
-        g.DrawArc(wavePen, 22, 8, 8, 16, -60, 120);
-
-        return System.Drawing.Icon.FromHandle(bitmap.GetHicon());
+            return new Icon(stream);
+        }
+        return SystemIcons.Application;
     }
 
     private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
