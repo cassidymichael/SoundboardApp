@@ -103,7 +103,7 @@ function New-Installer {
     $issPath = "$InstallerDir\soundboard.iss"
     $issContent = Get-Content $issPath -Raw
     $issContent = $issContent -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$Version`""
-    Set-Content $issPath $issContent
+    Set-Content $issPath $issContent -NoNewline
 
     # Run Inno Setup compiler
     & $ISCC $issPath

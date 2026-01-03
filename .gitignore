@@ -367,5 +367,8 @@ dist/
 publish/
 
 # Keep publish profiles
-!**/PublishProfiles/*.pubxml.TODO.md
+!**/PublishProfiles/*.pubxml
+
+# Personal/local files
+.TODO.md
 .claude/
