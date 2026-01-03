@@ -19,6 +19,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IHotkeyService _hotkeyService;
 
     private bool _isLearningHotkey;
+    private bool _isSyncingVolumes;
     private readonly DispatcherTimer _saveDebounceTimer;
     private readonly DispatcherTimer _statusFadeTimer;
     private DateTime _statusSetTime;
@@ -43,6 +44,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private int _injectVolumePercent = 100;
+
+    [ObservableProperty]
+    private bool _volumesLinked;
 
     [ObservableProperty]
     private string _statusMessage = "";
@@ -131,6 +135,7 @@ public partial class MainViewModel : ObservableObject
         // Set master volumes
         MonitorVolumePercent = (int)(_configService.Config.MonitorMasterVolume * 100);
         InjectVolumePercent = (int)(_configService.Config.InjectMasterVolume * 100);
+        VolumesLinked = _configService.Config.VolumesLinked;
 
         // Set UI settings
         ClickToPlayEnabled = _configService.Config.ClickToPlayEnabled;
@@ -566,6 +571,14 @@ public partial class MainViewModel : ObservableObject
     {
         _audioEngine.MonitorMasterVolume = value / 100f;
         _configService.Config.MonitorMasterVolume = value / 100f;
+
+        if (VolumesLinked && !_isSyncingVolumes)
+        {
+            _isSyncingVolumes = true;
+            InjectVolumePercent = value;
+            _isSyncingVolumes = false;
+        }
+
         _saveDebounceTimer.Stop();
         _saveDebounceTimer.Start();
     }
@@ -574,6 +587,14 @@ public partial class MainViewModel : ObservableObject
     {
         _audioEngine.InjectMasterVolume = value / 100f;
         _configService.Config.InjectMasterVolume = value / 100f;
+
+        if (VolumesLinked && !_isSyncingVolumes)
+        {
+            _isSyncingVolumes = true;
+            MonitorVolumePercent = value;
+            _isSyncingVolumes = false;
+        }
+
         _saveDebounceTimer.Stop();
         _saveDebounceTimer.Start();
     }
@@ -584,6 +605,20 @@ public partial class MainViewModel : ObservableObject
         _ = _configService.SaveAsync();
         OnPropertyChanged(nameof(EditModeEnabled));
         OnPropertyChanged(nameof(ModeHelpText));
+    }
+
+    partial void OnVolumesLinkedChanged(bool value)
+    {
+        _configService.Config.VolumesLinked = value;
+        _ = _configService.SaveAsync();
+
+        // When linking, sync inject to monitor's current value
+        if (value && MonitorVolumePercent != InjectVolumePercent)
+        {
+            _isSyncingVolumes = true;
+            InjectVolumePercent = MonitorVolumePercent;
+            _isSyncingVolumes = false;
+        }
     }
 
     public string ModeHelpText => ClickToPlayEnabled

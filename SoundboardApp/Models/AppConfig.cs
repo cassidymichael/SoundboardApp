@@ -9,6 +9,7 @@ public class AppConfig
     // Master volumes (0.0 - 1.0)
     public float MonitorMasterVolume { get; set; } = 1.0f;
     public float InjectMasterVolume { get; set; } = 1.0f;
+    public bool VolumesLinked { get; set; } = false;
 
     // UI settings (default to Edit mode for new users)
     public bool ClickToPlayEnabled { get; set; } = false;
