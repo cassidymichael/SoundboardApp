@@ -17,9 +17,10 @@ Windows soundboard for games, Discord, and streaming. Plays sounds via hotkeys t
 ```
 SoundboardApp/
 ├── Models/          # Data: TileConfig, AppConfig, HotkeyBinding
+│   └── Settings/    # Settings UI model classes
 ├── Services/        # Business logic: AudioEngine, ConfigService, HotkeyService
-├── ViewModels/      # MVVM: MainViewModel, TileViewModel
-├── Views/           # WPF: MainWindow, TileControl
+├── ViewModels/      # MVVM: MainViewModel, TileViewModel, SettingsViewModel
+├── Views/           # WPF: MainWindow, SettingsWindow, TileControl
 ├── Audio/           # Voice, OutputBus, FadeEnvelope
 └── Interop/         # P/Invoke: NativeMethods, WindowMessageSink
 ```
@@ -35,7 +36,7 @@ SoundboardApp/
 - Sound files referenced by absolute path (not copied)
 - Audio decoded on first load to float32/stereo/48kHz, cached in memory
 - Max 4 simultaneous voices, 15ms fade-out to prevent clicks
-- Close minimizes to tray; Exit via tray menu
+- Optional close-to-tray behavior (disabled by default)
 
 ## Sound Behavior
 - Default: sounds layer (play simultaneously)
@@ -45,3 +46,5 @@ SoundboardApp/
 ## Docs
 - `docs/specification.md` - Features and requirements
 - `docs/architecture.md` - Technical design details
+- `docs/adding-settings.md` - Guide for adding new settings
+- `docs/publishing.md` - Build and distribution

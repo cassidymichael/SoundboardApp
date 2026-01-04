@@ -12,7 +12,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
   - **Monitor output**: System Default (user hears playback)
 - Sound behavior: default is layering (simultaneous), configurable per-tile
 - Configuration persists to AppData; sounds referenced by absolute path
-- Close to tray; quit via tray menu
+- Optional close-to-tray behavior (disabled by default)
 
 **Target Environment:**
 - Windows 10/11
@@ -45,7 +45,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
   - `Protected`: This sound can't be cut by other sounds
 - **Volume model**: Per-tile volume + Master Monitor + Master Inject
 - **Tile click modes**: Toggle between Play (click to trigger) and Edit (click to select)
-- **App lifecycle**: Close hides to tray; Exit via tray menu
+- **App lifecycle**: Close quits by default; optionally minimizes to tray if enabled in settings
 - **Tray icon**: Left-click opens window, right-click shows menu (Open/Exit)
 - **Status messages**: Toast-style, visible 10 seconds then fade out
 
@@ -95,33 +95,3 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 
 Note: Sound files are referenced by absolute path (not copied). User manages their own sound file organization.
 
----
-
-## 7. Implementation Status
-
-### Completed
-- Project structure with DI container
-- All models (AppConfig, TileConfig, HotkeyBinding, AudioBuffer, AudioDevice)
-- ConfigService with JSON persistence
-- DeviceEnumerator with hot-plug notifications
-- SoundLibrary with decode/cache
-- AudioEngine with dual output buses and protected voice support
-- Voice system with fade envelopes
-- HotkeyService with Win32 integration
-- Hotkey reassignment (suspend/resume during learning)
-- MainWindow with 4x4 grid and resizable editor panel
-- System tray icon (native WinForms) with left-click open, right-click menu
-- Close-to-tray behavior
-- Toast-style status messages with fade-out
-- Sound behavior toggles (StopOthers, Protected)
-- Play/Edit mode toggle for tile clicks
-- Progress bar animation on playing tiles
-- Stop All button with configurable hotkey
-- Per-tile stop button (visible during playback)
-- Dark mode UI with dark title bars (Windows 10 1809+)
-
-### Future Enhancements
-- Serilog logging integration
-- Device fallback with user warnings
-- "Restart audio" button
-- Large file size warning on import

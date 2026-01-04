@@ -4,52 +4,21 @@
 
 ```
 SoundboardApp/
-├── App.xaml / App.xaml.cs      # Application entry, DI container setup
-├── Models/                      # Data models
-│   ├── AppConfig.cs            # Root configuration
-│   ├── TileConfig.cs           # Per-tile settings
-│   ├── HotkeyBinding.cs        # Key + modifiers
-│   ├── AudioBuffer.cs          # Decoded PCM data
-│   └── AudioDevice.cs          # Audio device info
-├── Services/                    # Business logic
-│   ├── Interfaces/             # Service contracts
-│   ├── ConfigService.cs        # JSON persistence
-│   ├── DeviceEnumerator.cs     # WASAPI device listing
-│   ├── SoundLibrary.cs         # Audio decode/cache
-│   ├── AudioEngine.cs          # Dual-output playback
-│   └── HotkeyService.cs        # Global hotkey registration
-├── Audio/                       # Audio engine internals
-│   ├── Voice.cs                # Single sound instance
-│   ├── FadeEnvelope.cs         # Fade-in/fade-out
-│   └── OutputBus.cs            # WasapiOut + mixer wrapper
-├── ViewModels/                  # MVVM ViewModels
-│   ├── MainViewModel.cs        # Main window logic
-│   └── TileViewModel.cs        # Per-tile state
-├── Views/                       # WPF UI
-│   ├── MainWindow.xaml         # Main window layout
-│   ├── Controls/               # Custom controls
-│   │   └── TileControl.xaml    # Tile button
-│   └── Converters/             # Value converters
-├── Interop/                     # Win32 interop
-│   ├── NativeMethods.cs        # P/Invoke declarations
-│   └── WindowMessageSink.cs    # Hidden window for WM_HOTKEY
-└── Resources/
-    └── Styles/
-        └── CommonStyles.xaml   # Global styles
+├── Models/           # Data: AppConfig, TileConfig, HotkeyBinding
+│   └── Settings/     # Settings UI model classes
+├── Services/         # Business logic: AudioEngine, ConfigService, HotkeyService
+├── Audio/            # Audio internals: Voice, OutputBus, FadeEnvelope
+├── ViewModels/       # MVVM: MainViewModel, TileViewModel, SettingsViewModel
+├── Views/            # WPF windows, dialogs, controls
+│   ├── Controls/     # Reusable controls (TileControl)
+│   └── Converters/   # Value converters
+├── Interop/          # Win32 P/Invoke for global hotkeys
+└── Resources/Styles/ # XAML styles and templates
 ```
 
 ## Dependency Injection
 
-Services are registered in `App.xaml.cs`:
-
-```csharp
-services.AddSingleton<IConfigService, ConfigService>();
-services.AddSingleton<IDeviceEnumerator, DeviceEnumerator>();
-services.AddSingleton<ISoundLibrary, SoundLibrary>();
-services.AddSingleton<IAudioEngine, AudioEngine>();
-services.AddSingleton<IHotkeyService, HotkeyService>();
-services.AddSingleton<MainViewModel>();
-```
+All services are registered as singletons in `App.xaml.cs`. ViewModels receive dependencies via constructor injection.
 
 ## Audio Pipeline
 
@@ -150,8 +119,9 @@ Using Win32 RegisterHotKey instead of low-level hooks:
 - Additional 100ms debounce for safety
 - Works in most games (some may block)
 
-### 5. Close to Tray
-ShutdownMode="OnExplicitShutdown" combined with:
-- Window close → Hide()
-- Tray Exit → Application.Current.Shutdown()
-- Ensures app keeps running for hotkeys
+### 5. Close to Tray (Optional)
+Controlled by `AppConfig.CloseToTray` setting (default: false):
+- **Enabled**: Window close → Hide() to tray, Exit via tray menu
+- **Disabled**: Window close → Application.Current.Shutdown()
+
+ShutdownMode="OnExplicitShutdown" allows both behaviors.

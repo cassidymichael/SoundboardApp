@@ -92,6 +92,23 @@ public partial class MainWindow : Window
         var app = (App)System.Windows.Application.Current;
         var settingsVm = app.GetService<ViewModels.SettingsViewModel>();
         var settingsWindow = new SettingsWindow { DataContext = settingsVm, Owner = this };
+
+        // Wire up callbacks
+        settingsVm.RequestClose = _ => settingsWindow.Close();
+        settingsVm.GetOwnerWindow = () => settingsWindow;
+
+        // Wire up factory reset to restart the app
+        settingsVm.OnFactoryReset = () =>
+        {
+            // Restart the application
+            var exePath = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(exePath))
+            {
+                System.Diagnostics.Process.Start(exePath);
+            }
+            ForceClose();
+        };
+
         settingsWindow.ShowDialog();
     }
 

@@ -16,9 +16,4 @@ public partial class SettingsWindow : Window
             NativeMethods.EnableDarkTitleBar(hwnd);
         };
     }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
 }
