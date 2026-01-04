@@ -1,49 +1,78 @@
 # Soundboard App
 
-> **Note:** This is a quick personal project. AI (Claude) was heavily used in its creation, though all code has been reviewed and tested by me.
+A simple soundboard app for playing sounds into voice chat and streaming software.
 
-A Windows soundboard application for real-time use in games, Discord, Microsoft Teams, and streaming setups.
+![Soundboard App](docs/images/screenshot01.png)
+
+## Download
+
+Download the latest release from the [Releases](https://github.com/cassidymichael/SoundboardApp/releases/) page. This app only works on Windows.
 
 ## Features
 
-- **4x4 Tile Grid** - 16 configurable sound buttons matching a dedicated keypad layout
-- **Global Hotkeys** - Trigger sounds even when the app is not focused (F13-F24 support)
-- **Dual Audio Output**
-  - **Monitor** - You hear the sound (System Default or custom device)
-  - **Inject** - Routes to Voicemeeter/virtual mic for calls and streams
-- **Low Latency** - Audio decoded and cached in memory for instant playback
-- **Click-Free Playback** - 15ms fade-out prevents audio clicks when stopping sounds
-- **System Tray** - Minimizes to tray; right-click to exit
+- Assign sounds to tiles, click tiles to play sound.
+- Assign hotkeys to tiles to trigger them while inside other applications.
 
-## Requirements
+## Audio Routing Setup
 
-- Windows 10/11
-- .NET 10.0 Runtime
-- Optional: Voicemeeter Banana for mic routing
+This app outputs to two audio devices simultaneously:
+- **Monitor** - Your speakers/headphones (you hear the sounds)
+- **Inject** - A virtual audio device (others hear the sounds in calls/streams)
 
-## Getting Started
+### Why do you need a virtual audio device?
+
+To route soundboard audio into apps like Discord, Teams, or streaming software, you need third-party software that creates a virtual audio device. Use such software to merge your mic audio with the sounds played by this soundboard. I recommend [Voicemeeter Banana](https://vb-audio.com/Voicemeeter/banana.html).
+
+
+## Usage
+
+### Tile Controls
+- **Click tile** - Select for editing
+- **Browse** - Choose a sound file
+- **Set** - Press a key to assign hotkey
+- **Volume slider** - Per-tile volume
+- **Stop other sounds** - When enabled, stops any other currently playing tiles when this tile is triggered.
+- **Can't be stopped** - When enabled, prevents other tiles' "stop other sounds" control from applying to this tile.
+
+### Global Controls
+- **Stop All** - Panic button (stops all sounds)
+- **Monitor/Inject dropdowns** - Select output devices
+- **Master volume sliders** - Overall output levels
+- **Link icon** - Lock both master sliders together
+
+### Configuration
+
+Settings are stored in `%AppData%\Soundboard\config.json`. Sound files are referenced by path (not copied into the app).
+
+---
+
+## Development
+
+### Project Background
+
+I built this as a quick personal tool because existing soundboard apps didn't fit my needs - I wanted something simple to assign hotkeys for a cheap USB macro keypad.
+
+Since this was a personal project, I gave AI significant responsibility in the development process. This was both to speed things up and to explore AI-enhanced software development practices. All code has been reviewed and tested by me, but the AI influence is substantial.
+
+### Building from Source
 
 1. Open `SoundboardApp.slnx` in Visual Studio 2022+
 2. Build and run (F5)
-3. Click a tile to select it
-4. Click "Browse" to select a sound file (WAV, MP3, OGG, FLAC)
-5. Click "Set" and press a key to assign a hotkey
-6. Select output devices from the dropdowns
 
-## Project Structure
+### Project Structure
 
 ```
 SoundboardApp/
-├── Models/              # Data models (TileConfig, AppConfig, etc.)
-├── ViewModels/          # MVVM ViewModels
-├── Views/               # WPF Windows and Controls
-├── Services/            # Business logic (Audio, Config, Hotkeys)
-├── Audio/               # Audio engine components (Voice, OutputBus)
-├── Interop/             # Win32 P/Invoke for global hotkeys
-└── Resources/           # Styles and resources
+├── Models/          # Data models (TileConfig, AppConfig, etc.)
+├── ViewModels/      # MVVM ViewModels
+├── Views/           # WPF Windows and Controls
+├── Services/        # Business logic (Audio, Config, Hotkeys)
+├── Audio/           # Audio engine components (Voice, OutputBus)
+├── Interop/         # Win32 P/Invoke for global hotkeys
+└── Resources/       # Styles and resources
 ```
 
-## Tech Stack
+### Tech Stack
 
 | Component | Technology |
 |-----------|------------|
@@ -52,24 +81,11 @@ SoundboardApp/
 | MVVM | CommunityToolkit.Mvvm |
 | Audio | NAudio (WASAPI) |
 | DI | Microsoft.Extensions.DependencyInjection |
-| Tray Icon | Windows Forms NotifyIcon |
 
-## Configuration
+### Further Reading
 
-Settings are stored in `%AppData%\Soundboard\config.json`. Sound files are referenced by absolute path (not copied).
-
-## Usage
-
-### Tile Controls
-- **Click tile** - Select for editing
-- **Browse** - Select a sound file
-- **Set** - Capture a hotkey
-- **Volume slider** - Per-tile volume
-
-### Global Controls
-- **Stop All** - Panic button - stops everything
-- **Monitor/Inject dropdowns** - Select output devices
-- **Master volume sliders** - Control overall output levels
+- [docs/specification.md](docs/specification.md) - Features and requirements
+- [docs/architecture.md](docs/architecture.md) - Technical design details
 
 ## License
 
