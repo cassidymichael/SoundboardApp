@@ -111,7 +111,8 @@ public partial class MainViewModel : ObservableObject
         _hotkeyService.StopCurrentTriggered += (_, _) => _audioEngine.StopCurrent();
         _hotkeyService.StopAllTriggered += (_, _) => _audioEngine.StopAll();
         _hotkeyService.RegistrationFailed += OnHotkeyRegistrationFailed;
-        _deviceEnumerator.DevicesChanged += (_, _) => RefreshDevices();
+        _deviceEnumerator.DevicesChanged += (_, _) =>
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(RefreshDevices);
 
         Initialize();
     }
@@ -177,10 +178,11 @@ public partial class MainViewModel : ObservableObject
             OutputDevices.Add(device);
         }
 
-        // Restore selection (fallback to System Default for monitor, not None)
+        // Restore selection (fallback to System Default for monitor, None for inject)
         SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == currentMonitor)
                                ?? OutputDevices.FirstOrDefault(d => d.Id == "default");
-        SelectedInjectDevice = OutputDevices.FirstOrDefault(d => d.Id == currentInject);
+        SelectedInjectDevice = OutputDevices.FirstOrDefault(d => d.Id == currentInject)
+                              ?? OutputDevices.FirstOrDefault(d => d.Id == "none");
     }
 
     private void OnTileSelected(TileViewModel tile)

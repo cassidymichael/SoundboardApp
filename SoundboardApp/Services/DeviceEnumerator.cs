@@ -32,9 +32,9 @@ public class DeviceEnumerator : IDeviceEnumerator
                 devices.Add(new AudioDevice(endpoint.ID, endpoint.FriendlyName));
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Return at least the default device
+            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to enumerate devices: {ex.Message}");
         }
 
         return devices;
@@ -60,9 +60,9 @@ public class DeviceEnumerator : IDeviceEnumerator
                 return new AudioDevice(device.ID, device.FriendlyName);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Device not found or error
+            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get device {id}: {ex.Message}");
         }
 
         return null;
@@ -82,9 +82,9 @@ public class DeviceEnumerator : IDeviceEnumerator
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Error enumerating devices
+            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to find VoiceMeeter: {ex.Message}");
         }
 
         return null;
@@ -98,8 +98,9 @@ public class DeviceEnumerator : IDeviceEnumerator
             {
                 return _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get default endpoint: {ex.Message}");
                 return null;
             }
         }
@@ -108,8 +109,9 @@ public class DeviceEnumerator : IDeviceEnumerator
         {
             return _enumerator.GetDevice(id);
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get MMDevice {id}: {ex.Message}");
             return null;
         }
     }
