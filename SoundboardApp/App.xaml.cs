@@ -41,14 +41,17 @@ public partial class App : System.Windows.Application
     {
         // Services
         services.AddSingleton<IConfigService, ConfigService>();
+        services.AddSingleton<ISoundsLibraryService, SoundsLibraryService>();
         services.AddSingleton<IDeviceEnumerator, DeviceEnumerator>();
-        services.AddSingleton<ISoundLibrary, SoundLibrary>();
+        services.AddSingleton<IAudioCache, AudioCache>();
         services.AddSingleton<IAudioEngine, AudioEngine>();
         services.AddSingleton<IHotkeyService, HotkeyService>();
 
         // ViewModels
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddTransient<SoundsLibraryViewModel>();
+        services.AddTransient<SoundPickerViewModel>();
     }
 
     public T GetService<T>() where T : class
@@ -65,6 +68,9 @@ public partial class App : System.Windows.Application
             // Initialize services that need early startup
             var configService = _serviceProvider!.GetRequiredService<IConfigService>();
             await configService.LoadAsync();
+
+            var soundsLibrary = _serviceProvider.GetRequiredService<ISoundsLibraryService>();
+            await soundsLibrary.LoadAsync();
 
             // Create main window
             var mainWindow = new Views.MainWindow();

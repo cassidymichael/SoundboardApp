@@ -18,6 +18,22 @@ public partial class ConfirmDialog : Window
             var hwnd = new WindowInteropHelper(this).Handle;
             NativeMethods.EnableDarkTitleBar(hwnd);
         };
+
+        KeyDown += (s, e) =>
+        {
+            if (e.Key == Key.Enter)
+            {
+                Result = true;
+                Close();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                Result = false;
+                Close();
+                e.Handled = true;
+            }
+        };
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

@@ -10,8 +10,10 @@ Download the latest release from the [Releases](https://github.com/cassidymichae
 
 ## Features
 
-- Assign sounds to tiles, click tiles to play sound.
-- Assign hotkeys to tiles to trigger them while inside other applications.
+- **Sounds Library** - Centralized sound management with search and organization
+- **Tile Grid** - Assign sounds to tiles, click to play
+- **Global Hotkeys** - Trigger sounds while inside other applications
+- **Dual Output** - Play to monitor and inject (virtual mic) simultaneously
 
 ## Audio Routing Setup
 
@@ -26,9 +28,14 @@ To route soundboard audio into apps like Discord, Teams, or streaming software, 
 
 ## Usage
 
+### Sounds Library
+- **Add Sound** - Add sounds to library (copy to app folder or reference external)
+- **Search** - Filter sounds by name
+- **Double-click** - Edit sound name inline
+
 ### Tile Controls
-- **Click tile** - Select for editing
-- **Browse** - Choose a sound file
+- **Click tile** - Select for editing, or play sound, depending on the current Mode selected.
+- **Select Sound** - Pick from library or browse for file
 - **Set** - Press a key to assign hotkey
 - **Volume slider** - Per-tile volume
 - **Stop other sounds** - When enabled, stops any other currently playing tiles when this tile is triggered.
@@ -42,7 +49,10 @@ To route soundboard audio into apps like Discord, Teams, or streaming software, 
 
 ### Configuration
 
-Settings are stored in `%AppData%\Soundboard\config.json`. Sound files are referenced by path (not copied into the app).
+Settings are stored in `%AppData%\Soundboard\`:
+- `config.json` - App settings and tile configurations
+- `sounds-library.json` - Sounds library metadata
+- `Sounds/` folder - Copied sound files (when "Copy to library" is enabled)
 
 ---
 

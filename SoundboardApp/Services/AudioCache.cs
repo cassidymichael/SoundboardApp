@@ -7,7 +7,11 @@ using System.IO;
 
 namespace Soundboard.Services;
 
-public class SoundLibrary : ISoundLibrary
+/// <summary>
+/// Manages audio file decoding and caching.
+/// Audio files are decoded to a standardized format (float32, stereo, 48kHz) and cached in memory.
+/// </summary>
+public class AudioCache : IAudioCache
 {
     private readonly ConcurrentDictionary<string, AudioBuffer> _cache = new();
 

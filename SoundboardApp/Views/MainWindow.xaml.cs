@@ -119,6 +119,20 @@ public partial class MainWindow : Window
         aboutWindow.ShowDialog();
     }
 
+    public void ShowLibrary()
+    {
+        ShowFromTray();
+        var app = (App)System.Windows.Application.Current;
+        var libraryVm = app.GetService<ViewModels.SoundsLibraryViewModel>();
+        var libraryWindow = new SoundsLibraryWindow { DataContext = libraryVm, Owner = this };
+        libraryWindow.ShowDialog();
+    }
+
+    private void LibraryButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowLibrary();
+    }
+
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
         ShowSettings();
@@ -127,6 +141,25 @@ public partial class MainWindow : Window
     private void AboutButton_Click(object sender, RoutedEventArgs e)
     {
         ShowAbout();
+    }
+
+    private void ClearSoundButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm && vm.SelectedTile?.HasSound == true)
+        {
+            var confirmed = ConfirmDialog.Show(
+                this,
+                "Remove Sound",
+                $"Remove \"{vm.SelectedTile.FileName}\" from this tile?",
+                confirmText: "Remove",
+                cancelText: "Cancel",
+                isDangerous: true);
+
+            if (confirmed)
+            {
+                vm.ClearSoundCommand.Execute(null);
+            }
+        }
     }
 
     private static Icon CreateIcon()

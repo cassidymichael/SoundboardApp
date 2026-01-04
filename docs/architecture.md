@@ -4,11 +4,11 @@
 
 ```
 SoundboardApp/
-├── Models/           # Data: AppConfig, TileConfig, HotkeyBinding
+├── Models/           # Data: AppConfig, TileConfig, SoundEntry, HotkeyBinding
 │   └── Settings/     # Settings UI model classes
-├── Services/         # Business logic: AudioEngine, ConfigService, HotkeyService
+├── Services/         # Business logic: AudioEngine, AudioCache, SoundsLibraryService
 ├── Audio/            # Audio internals: Voice, OutputBus, FadeEnvelope
-├── ViewModels/       # MVVM: MainViewModel, TileViewModel, SettingsViewModel
+├── ViewModels/       # MVVM: MainViewModel, TileViewModel, SoundsLibraryViewModel
 ├── Views/            # WPF windows, dialogs, controls
 │   ├── Controls/     # Reusable controls (TileControl)
 │   └── Converters/   # Value converters
@@ -25,7 +25,7 @@ All services are registered as singletons in `App.xaml.cs`. ViewModels receive d
 ```
 Sound File (WAV/MP3)
         ↓
-   SoundLibrary.GetOrLoad()
+   AudioCache.GetOrLoad()
         ↓ (decode to float32/stereo/48kHz)
    AudioBuffer (in-memory PCM)
         ↓
@@ -95,7 +95,7 @@ When user clicks "Set" to assign a hotkey:
 ## Key Design Decisions
 
 ### 1. Decode on First Load
-Audio files are decoded to float32/stereo/48kHz on first access (via SoundLibrary). Files are referenced by absolute path and cached in memory. This ensures:
+Audio files are decoded to float32/stereo/48kHz on first access (via AudioCache). Files can be referenced from the Sounds Library or by absolute path. This ensures:
 - Consistent format for mixing
 - No decode latency during playback (after first load)
 - Memory tradeoff acceptable for 16 short clips
@@ -125,3 +125,35 @@ Controlled by `AppConfig.CloseToTray` setting (default: false):
 - **Disabled**: Window close → Application.Current.Shutdown()
 
 ShutdownMode="OnExplicitShutdown" allows both behaviors.
+
+## Sounds Library
+
+The Sounds Library provides centralized sound management:
+
+```
+User adds sound file
+        ↓
+   SoundsLibraryService.AddSoundAsync()
+        ↓
+   ┌─────────────────────────────────────┐
+   │  Copy to library?                   │
+   │  ├── Yes: Copy to Sounds/ folder   │
+   │  └── No: Store as reference         │
+   └─────────────────────────────────────┘
+        ↓
+   SoundEntry (id, displayName, filePath, isCopied)
+        ↓
+   sounds-library.json (persisted)
+```
+
+### Key Features
+- **Add as reference**: Original file stays in place, path stored
+- **Copy to library**: File copied to `%AppData%\Soundboard\Sounds\`, preserving filename
+- **Duplicate handling**: Appends (1), (2), etc. if filename exists
+- **Duration detection**: Auto-populated when sound is loaded
+- **Missing file detection**: Validates file existence, marks missing
+
+### Tile Integration
+Tiles can reference sounds via `SoundEntryId` or direct `FilePath`:
+- `SoundEntryId` set: Resolves path through library
+- `SoundEntryId` null: Uses `FilePath` directly (legacy support)

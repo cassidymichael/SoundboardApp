@@ -14,9 +14,10 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IConfigService _configService;
     private readonly IDeviceEnumerator _deviceEnumerator;
-    private readonly ISoundLibrary _soundLibrary;
+    private readonly IAudioCache _audioCache;
     private readonly IAudioEngine _audioEngine;
     private readonly IHotkeyService _hotkeyService;
+    private readonly ISoundsLibraryService _soundsLibrary;
 
     private bool _isLearningHotkey;
     private bool _isSyncingVolumes;
@@ -78,15 +79,17 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(
         IConfigService configService,
         IDeviceEnumerator deviceEnumerator,
-        ISoundLibrary soundLibrary,
+        IAudioCache audioCache,
         IAudioEngine audioEngine,
-        IHotkeyService hotkeyService)
+        IHotkeyService hotkeyService,
+        ISoundsLibraryService soundsLibrary)
     {
         _configService = configService;
         _deviceEnumerator = deviceEnumerator;
-        _soundLibrary = soundLibrary;
+        _audioCache = audioCache;
         _audioEngine = audioEngine;
         _hotkeyService = hotkeyService;
+        _soundsLibrary = soundsLibrary;
 
         // Debounced save timer (500ms delay to batch rapid changes)
         _saveDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
@@ -160,7 +163,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Preload sounds
-        _ = _soundLibrary.PreloadAsync(_configService.Config.Tiles);
+        _ = _audioCache.PreloadAsync(_configService.Config.Tiles);
     }
 
     private void RefreshDevices()
@@ -240,8 +243,7 @@ public partial class MainViewModel : ObservableObject
         _audioEngine.StopAll();
     }
 
-    [RelayCommand]
-    private async Task ImportSound()
+    private async Task BrowseAndAddToLibrary()
     {
         if (SelectedTile == null) return;
 
@@ -257,25 +259,29 @@ public partial class MainViewModel : ObservableObject
             {
                 var filePath = dialog.FileName;
 
+                // Add to library as a reference (not copied)
+                var entry = await _soundsLibrary.AddSoundAsync(filePath, copyToAppFolder: false);
+
                 // Invalidate old cache entry if there was a previous sound
                 var oldPath = SelectedTile.Config.FilePath;
                 if (!string.IsNullOrEmpty(oldPath))
                 {
-                    _soundLibrary.Invalidate(oldPath);
+                    _audioCache.Invalidate(oldPath);
                 }
 
-                // Store the absolute path directly
-                SelectedTile.SetSoundFile(filePath);
+                // Set the library reference and path
+                SelectedTile.Config.SoundEntryId = entry.Id;
+                SelectedTile.SetSoundFile(entry.FilePath);
 
                 // Preload the sound
-                _soundLibrary.GetOrLoad(filePath);
+                _audioCache.GetOrLoad(entry.FilePath);
 
                 await _configService.SaveAsync();
-                ShowStatus($"Sound set: {System.IO.Path.GetFileName(filePath)}");
+                ShowStatus($"Sound added to library: {entry.DisplayName}");
             }
             catch (Exception ex)
             {
-                ShowStatus($"Failed to load sound: {ex.Message}");
+                ShowStatus($"Failed to add sound: {ex.Message}");
             }
         }
     }
@@ -484,14 +490,60 @@ public partial class MainViewModel : ObservableObject
 
         var oldPath = SelectedTile.Config.FilePath;
         SelectedTile.SetSoundFile(string.Empty);
+        SelectedTile.Config.SoundEntryId = null;
 
         if (!string.IsNullOrEmpty(oldPath))
         {
-            _soundLibrary.Invalidate(oldPath);
+            _audioCache.Invalidate(oldPath);
         }
 
         await _configService.SaveAsync();
         ShowStatus("Sound cleared");
+    }
+
+    [RelayCommand]
+    private async Task PickFromLibrary()
+    {
+        if (SelectedTile == null) return;
+
+        var app = (App)System.Windows.Application.Current;
+        var pickerVm = app.GetService<SoundPickerViewModel>();
+        var pickerDialog = new Views.SoundPickerDialog
+        {
+            DataContext = pickerVm,
+            Owner = System.Windows.Application.Current.MainWindow
+        };
+
+        if (pickerDialog.ShowDialog() == true)
+        {
+            if (pickerVm.BrowseFileRequested)
+            {
+                // User wants to browse for a file - add it to library as reference
+                await BrowseAndAddToLibrary();
+            }
+            else if (pickerVm.Result != null)
+            {
+                // User selected a sound from the library
+                var entry = pickerVm.Result;
+
+                // Invalidate old cache entry
+                var oldPath = SelectedTile.Config.FilePath;
+                if (!string.IsNullOrEmpty(oldPath))
+                {
+                    _audioCache.Invalidate(oldPath);
+                }
+
+                // Set the library reference and path
+                SelectedTile.Config.SoundEntryId = entry.Id;
+                SelectedTile.SetSoundFile(entry.FilePath);
+
+                // Preload the sound
+                _audioCache.GetOrLoad(entry.FilePath);
+
+                await _configService.SaveAsync();
+                ShowStatus($"Sound set: {entry.DisplayName}");
+            }
+        }
     }
 
     private void OnTileTriggered(object? sender, int tileIndex)
@@ -507,9 +559,16 @@ public partial class MainViewModel : ObservableObject
         if (!tile.HasSound) return;
 
         var config = tile.Config;
-        if (string.IsNullOrEmpty(config.FilePath)) return;
 
-        var buffer = _soundLibrary.GetOrLoad(config.FilePath);
+        // Resolve file path through library (handles SoundEntryId or direct FilePath)
+        var filePath = _soundsLibrary.ResolveFilePath(config);
+        if (string.IsNullOrEmpty(filePath))
+        {
+            ShowStatus($"Sound file not found for {tile.Name}");
+            return;
+        }
+
+        var buffer = _audioCache.GetOrLoad(filePath);
         if (buffer == null)
         {
             ShowStatus($"Sound file not found for {tile.Name}");
