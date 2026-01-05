@@ -2,7 +2,7 @@
 ; Compile with: ISCC.exe soundboard.iss
 
 #define MyAppName "Soundboard"
-#define MyAppVersion "1.0.6"
+#define MyAppVersion "0.0.0"
 #define MyAppPublisher "Michael Cassidy"
 #define MyAppExeName "Soundboard.exe"
 #define MyAppURL "https://github.com/cassidymichael/SoundboardApp"

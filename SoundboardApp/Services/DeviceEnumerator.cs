@@ -2,13 +2,15 @@ using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using Soundboard.Models;
 using Soundboard.Services.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace Soundboard.Services;
 
 public class DeviceEnumerator : IDeviceEnumerator
 {
-    private readonly MMDeviceEnumerator _enumerator;
-    private readonly NotificationClient _notificationClient;
+    private MMDeviceEnumerator _enumerator;
+    private NotificationClient _notificationClient;
+    private readonly object _lock = new();
     private bool _disposed;
 
     public event EventHandler? DevicesChanged;
@@ -22,22 +24,35 @@ public class DeviceEnumerator : IDeviceEnumerator
 
     public IReadOnlyList<AudioDevice> GetOutputDevices()
     {
-        var devices = new List<AudioDevice> { AudioDevice.None, AudioDevice.Default };
-
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            var endpoints = _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            foreach (var endpoint in endpoints)
+            var devices = new List<AudioDevice> { AudioDevice.None, AudioDevice.Default };
+
+            try
             {
-                devices.Add(new AudioDevice(endpoint.ID, endpoint.FriendlyName));
+                lock (_lock)
+                {
+                    var endpoints = _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                    foreach (var endpoint in endpoints)
+                    {
+                        devices.Add(new AudioDevice(endpoint.ID, endpoint.FriendlyName));
+                    }
+                }
+                return devices;
+            }
+            catch (Exception ex) when (attempt == 0 && IsStaleComException(ex))
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Stale COM detected, recreating: {ex.Message}");
+                RecreateEnumerator();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to enumerate devices: {ex.Message}");
+                return devices;
             }
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to enumerate devices: {ex.Message}");
-        }
 
-        return devices;
+        return new List<AudioDevice> { AudioDevice.None, AudioDevice.Default };
     }
 
     public AudioDevice? GetDeviceById(string id)
@@ -52,17 +67,30 @@ public class DeviceEnumerator : IDeviceEnumerator
             return AudioDevice.Default;
         }
 
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            var device = _enumerator.GetDevice(id);
-            if (device != null && device.State == DeviceState.Active)
+            try
             {
-                return new AudioDevice(device.ID, device.FriendlyName);
+                lock (_lock)
+                {
+                    var device = _enumerator.GetDevice(id);
+                    if (device != null && device.State == DeviceState.Active)
+                    {
+                        return new AudioDevice(device.ID, device.FriendlyName);
+                    }
+                }
+                return null;
             }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get device {id}: {ex.Message}");
+            catch (Exception ex) when (attempt == 0 && IsStaleComException(ex))
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Stale COM detected, recreating: {ex.Message}");
+                RecreateEnumerator();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get device {id}: {ex.Message}");
+                return null;
+            }
         }
 
         return null;
@@ -70,21 +98,34 @@ public class DeviceEnumerator : IDeviceEnumerator
 
     public AudioDevice? FindVoicemeeterAux()
     {
-        try
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            var endpoints = _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            foreach (var endpoint in endpoints)
+            try
             {
-                if (endpoint.FriendlyName.Contains("VoiceMeeter Aux", StringComparison.OrdinalIgnoreCase) ||
-                    endpoint.FriendlyName.Contains("Voicemeeter AUX", StringComparison.OrdinalIgnoreCase))
+                lock (_lock)
                 {
-                    return new AudioDevice(endpoint.ID, endpoint.FriendlyName);
+                    var endpoints = _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                    foreach (var endpoint in endpoints)
+                    {
+                        if (endpoint.FriendlyName.Contains("VoiceMeeter Aux", StringComparison.OrdinalIgnoreCase) ||
+                            endpoint.FriendlyName.Contains("Voicemeeter AUX", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return new AudioDevice(endpoint.ID, endpoint.FriendlyName);
+                        }
+                    }
                 }
+                return null;
             }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to find VoiceMeeter: {ex.Message}");
+            catch (Exception ex) when (attempt == 0 && IsStaleComException(ex))
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Stale COM detected, recreating: {ex.Message}");
+                RecreateEnumerator();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to find VoiceMeeter: {ex.Message}");
+                return null;
+            }
         }
 
         return null;
@@ -92,27 +133,69 @@ public class DeviceEnumerator : IDeviceEnumerator
 
     internal MMDevice? GetMMDevice(string? id)
     {
-        if (string.IsNullOrEmpty(id) || id == "default")
+        for (int attempt = 0; attempt < 2; attempt++)
         {
             try
             {
-                return _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                lock (_lock)
+                {
+                    if (string.IsNullOrEmpty(id) || id == "default")
+                    {
+                        return _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                    }
+
+                    return _enumerator.GetDevice(id);
+                }
+            }
+            catch (Exception ex) when (attempt == 0 && IsStaleComException(ex))
+            {
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Stale COM detected, recreating: {ex.Message}");
+                RecreateEnumerator();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get default endpoint: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get MMDevice {id}: {ex.Message}");
                 return null;
             }
         }
 
-        try
+        return null;
+    }
+
+    private static bool IsStaleComException(Exception ex)
+    {
+        if (ex is COMException comEx)
         {
-            return _enumerator.GetDevice(id);
+            return comEx.HResult == unchecked((int)0x800706BE)  // RPC_S_CALL_FAILED
+                || comEx.HResult == unchecked((int)0x80070726)  // ERROR_UNKNOWN_PROCEDURE
+                || comEx.HResult == unchecked((int)0x80004004)  // E_ABORT
+                || comEx.HResult == unchecked((int)0x800706BA)  // RPC_S_SERVER_UNAVAILABLE
+                || comEx.HResult == unchecked((int)0x80070490); // ERROR_NOT_FOUND (no default device)
         }
-        catch (Exception ex)
+        return false;
+    }
+
+    private void RecreateEnumerator()
+    {
+        lock (_lock)
         {
-            System.Diagnostics.Debug.WriteLine($"[DeviceEnumerator] Failed to get MMDevice {id}: {ex.Message}");
-            return null;
+            try
+            {
+                _enumerator.UnregisterEndpointNotificationCallback(_notificationClient);
+            }
+            catch { /* ignore cleanup errors */ }
+
+            try
+            {
+                _enumerator.Dispose();
+            }
+            catch { /* ignore cleanup errors */ }
+
+            _enumerator = new MMDeviceEnumerator();
+            _notificationClient = new NotificationClient(this);
+            _enumerator.RegisterEndpointNotificationCallback(_notificationClient);
+
+            System.Diagnostics.Debug.WriteLine("[DeviceEnumerator] Recreated MMDeviceEnumerator after COM failure");
         }
     }
 
@@ -126,8 +209,17 @@ public class DeviceEnumerator : IDeviceEnumerator
         if (_disposed) return;
         _disposed = true;
 
-        _enumerator.UnregisterEndpointNotificationCallback(_notificationClient);
-        _enumerator.Dispose();
+        try
+        {
+            _enumerator.UnregisterEndpointNotificationCallback(_notificationClient);
+        }
+        catch { /* ignore cleanup errors */ }
+
+        try
+        {
+            _enumerator.Dispose();
+        }
+        catch { /* ignore cleanup errors */ }
     }
 
     private class NotificationClient : IMMNotificationClient

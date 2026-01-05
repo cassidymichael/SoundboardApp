@@ -5,9 +5,9 @@
 | Method | Command/Action | Output |
 |--------|----------------|--------|
 | VS Portable | Right-click → Publish → Portable | `publish\Soundboard.exe` |
-| Script (all) | `.\build.ps1` | `dist\` folder |
-| Script (portable only) | `.\build.ps1 -Portable` | `dist\Soundboard-x.x.x-portable.zip` |
-| Script (installer only) | `.\build.ps1 -Installer` | `dist\SoundboardSetup-x.x.x.exe` |
+| Script (all) | `.\publish.ps1` | `dist\` folder |
+| Script (portable only) | `.\publish.ps1 -Portable` | `dist\Soundboard-x.x.x-portable.zip` |
+| Script (installer only) | `.\publish.ps1 -Installer` | `dist\SoundboardSetup-x.x.x.exe` |
 
 ## Distribution Formats
 
@@ -31,7 +31,7 @@ For quick one-off builds:
 
 Output: `SoundboardApp\publish\Soundboard.exe`
 
-## Build Script
+## Publish Script
 
 ### Prerequisites
 - [Inno Setup 6](https://jrsoftware.org/isdl.php) installed to default location (only needed for installer)
@@ -39,14 +39,14 @@ Output: `SoundboardApp\publish\Soundboard.exe`
 ### Usage
 
 ```powershell
-# Build both portable zip and installer (default)
-.\build.ps1
+# Create both portable zip and installer (default)
+.\publish.ps1
 
 # Portable zip only (no Inno Setup required)
-.\build.ps1 -Portable
+.\publish.ps1 -Portable
 
 # Installer only
-.\build.ps1 -Installer
+.\publish.ps1 -Installer
 ```
 
 Version is read automatically from `<Version>` in `SoundboardApp.csproj`.
@@ -69,7 +69,7 @@ The publish is configured for:
 
 | File | Purpose |
 |------|---------|
-| `build.ps1` | Automated build script |
+| `publish.ps1` | Automated publish script |
 | `installer\soundboard.iss` | Inno Setup configuration |
 | `SoundboardApp\Properties\PublishProfiles\Portable.pubxml` | VS publish profile |
 

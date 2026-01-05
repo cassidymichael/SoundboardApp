@@ -22,6 +22,7 @@ public partial class MainViewModel : ObservableObject
     private bool _isLearningHotkey;
     private bool _isSyncingVolumes;
     private readonly DispatcherTimer _saveDebounceTimer;
+    private readonly DispatcherTimer _deviceRefreshDebounceTimer;
     private readonly DispatcherTimer _statusFadeTimer;
     private DateTime _statusSetTime;
 
@@ -99,6 +100,14 @@ public partial class MainViewModel : ObservableObject
             await _configService.SaveAsync();
         };
 
+        // Debounced device refresh timer (300ms delay to handle rapid device change notifications)
+        _deviceRefreshDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _deviceRefreshDebounceTimer.Tick += (_, _) =>
+        {
+            _deviceRefreshDebounceTimer.Stop();
+            RefreshDevices();
+        };
+
         // Status fade timer (updates every 50ms for smooth fade)
         _statusFadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _statusFadeTimer.Tick += OnStatusFadeTick;
@@ -112,7 +121,7 @@ public partial class MainViewModel : ObservableObject
         _hotkeyService.StopAllTriggered += (_, _) => _audioEngine.StopAll();
         _hotkeyService.RegistrationFailed += OnHotkeyRegistrationFailed;
         _deviceEnumerator.DevicesChanged += (_, _) =>
-            System.Windows.Application.Current?.Dispatcher.BeginInvoke(RefreshDevices);
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(OnDevicesChangedDebounced);
 
         Initialize();
     }
@@ -165,6 +174,13 @@ public partial class MainViewModel : ObservableObject
 
         // Preload sounds
         _ = _audioCache.PreloadAsync(_configService.Config.Tiles);
+    }
+
+    private void OnDevicesChangedDebounced()
+    {
+        // Restart timer on each notification - only fires once after notifications stop
+        _deviceRefreshDebounceTimer.Stop();
+        _deviceRefreshDebounceTimer.Start();
     }
 
     private void RefreshDevices()

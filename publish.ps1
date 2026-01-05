@@ -1,5 +1,5 @@
-# Soundboard Build Script
-# Creates both portable and installer distributions
+# Soundboard Publish Script
+# Creates portable zip and installer for distribution
 
 param(
     [switch]$Portable,
@@ -112,11 +112,16 @@ function New-Installer {
         throw "Inno Setup compilation failed"
     }
 
+    # Reset .iss file to placeholder so it doesn't show as changed in git
+    $issContent = Get-Content $issPath -Raw
+    $issContent = $issContent -replace '#define MyAppVersion ".*"', '#define MyAppVersion "0.0.0"'
+    Set-Content $issPath $issContent -NoNewline
+
     Write-Host "Installer created in: $DistDir" -ForegroundColor Green
 }
 
 # Main
-Write-Host "Soundboard Build Script v$Version" -ForegroundColor Yellow
+Write-Host "Soundboard Publish Script v$Version" -ForegroundColor Yellow
 
 if (-not ($Portable -or $Installer -or $All)) {
     $All = $true  # Default to building all
@@ -133,6 +138,6 @@ if ($Installer -or $All) {
     New-Installer
 }
 
-Write-Step "Build complete!"
+Write-Step "Publish complete!"
 Write-Host "Output files are in: $DistDir" -ForegroundColor Green
 Get-ChildItem $DistDir | ForEach-Object { Write-Host "  - $($_.Name)" }
