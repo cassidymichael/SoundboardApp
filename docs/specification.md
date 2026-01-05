@@ -5,7 +5,7 @@
 Windows soundboard application for real-time use in games, Discord, Microsoft Teams, and streaming setups.
 
 **Key Features:**
-- 4x4 tile UI (16 sounds) matching a dedicated keypad
+- Customizable tile grid (1-8 rows/columns, default 4x4)
 - Global hotkeys (F13-F24 pre-mapped externally)
 - Dual-output playback:
   - **Inject output**: Voicemeeter AUX Input (routes into microphone/calls)
@@ -43,7 +43,8 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 - **Sound behavior**: Sounds layer by default (up to 4 simultaneous)
   - `StopOthers`: This sound cuts other sounds when played
   - `Protected`: This sound can't be cut by other sounds
-- **Volume model**: Per-tile volume + Master Monitor + Master Inject
+- **Volume model**: Per-tile volume + Master Monitor + Master Inject (linkable)
+- **Device selection**: Monitor and Inject dropdowns; select "None" to disable either output
 - **Tile click modes**: Toggle between Play (click to trigger) and Edit (click to select)
 - **App lifecycle**: Close quits by default; optionally minimizes to tray if enabled in settings
 - **Tray icon**: Left-click opens window, right-click shows menu (Open/Exit)

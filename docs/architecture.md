@@ -98,7 +98,7 @@ When user clicks "Set" to assign a hotkey:
 Audio files are decoded to float32/stereo/48kHz on first access (via AudioCache). Files can be referenced from the Sounds Library or by absolute path. This ensures:
 - Consistent format for mixing
 - No decode latency during playback (after first load)
-- Memory tradeoff acceptable for 16 short clips
+- Memory tradeoff acceptable for typical usage (up to 64 tiles at 8x8)
 
 ### 2. Voice Pairs
 Each playback creates two Voice instances (monitor + inject) tracked together. This ensures:

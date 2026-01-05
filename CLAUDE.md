@@ -7,6 +7,11 @@ Windows soundboard for games, Discord, and streaming. Plays sounds via hotkeys t
 - User will test and report any build errors or runtime issues
 - **Versioning**: Set `<Version>` in `SoundboardApp/SoundboardApp.csproj`
 - **Git commits**: Do not include "Generated with Claude Code" or similar footers in commit messages
+- **Before committing**: Check if changes affect documented features in `README.md`, `docs/`, or `CLAUDE.md`. Update docs for:
+  - New features or settings
+  - Changed behavior or defaults
+  - New architecture/patterns
+  - Modified configuration options
 
 ## Tech Stack
 - .NET 10.0 Windows, WPF, MVVM (CommunityToolkit.Mvvm)
@@ -36,6 +41,7 @@ SoundboardApp/
 - Config persists to `%AppData%\Soundboard\config.json`
 - Sound files referenced by absolute path (not copied)
 - Audio decoded on first load to float32/stereo/48kHz, cached in memory
+- Customizable grid: 1-8 rows/columns (default 4x4)
 - Max 4 simultaneous voices, 15ms fade-out to prevent clicks
 - Optional close-to-tray behavior (disabled by default)
 

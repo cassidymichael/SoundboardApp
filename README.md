@@ -11,7 +11,7 @@ Download the latest release from the [Releases](https://github.com/cassidymichae
 ## Features
 
 - **Sounds Library** - Centralized sound management with search and organization
-- **Tile Grid** - Assign sounds to tiles, click to play
+- **Tile Grid** - Customizable grid (1-8 rows/columns), assign sounds to tiles
 - **Global Hotkeys** - Trigger sounds while inside other applications
 - **Dual Output** - Play to monitor and inject (virtual mic) simultaneously
 
@@ -43,7 +43,7 @@ To route soundboard audio into apps like Discord, Teams, or streaming software, 
 
 ### Global Controls
 - **Stop All** - Panic button (stops all sounds)
-- **Monitor/Inject dropdowns** - Select output devices
+- **Monitor/Inject dropdowns** - Select output devices (or "None" to disable)
 - **Master volume sliders** - Overall output levels
 - **Link icon** - Lock both master sliders together
 
