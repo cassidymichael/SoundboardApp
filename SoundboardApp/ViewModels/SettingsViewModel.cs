@@ -142,6 +142,22 @@ public partial class SettingsViewModel : ObservableObject
         var advanced = new SettingsCategory { Name = "Advanced" };
         advanced.Settings.Add(new ActionSetting
         {
+            Key = "ExportConfig",
+            Title = "Export configuration",
+            Description = "Save all settings and tile configurations to a file for backup or transfer to another computer.",
+            ButtonText = "Export",
+            Action = ExportConfigAsync
+        });
+        advanced.Settings.Add(new ActionSetting
+        {
+            Key = "ImportConfig",
+            Title = "Import configuration",
+            Description = "Load settings and tile configurations from a previously exported file. The app will restart to apply changes.",
+            ButtonText = "Import",
+            Action = ImportConfigAsync
+        });
+        advanced.Settings.Add(new ActionSetting
+        {
             Key = "ResetToDefaults",
             Title = "Reset to defaults",
             Description = "Reset all settings to their default values. Your sounds and hotkeys will be preserved.",
@@ -271,6 +287,83 @@ public partial class SettingsViewModel : ObservableObject
         catch
         {
             // Silently fail if registry access fails
+        }
+    }
+
+    private async Task ExportConfigAsync()
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Export Configuration",
+            Filter = "Soundboard Config (*.json)|*.json",
+            FileName = "soundboard-config.json",
+            DefaultExt = ".json"
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                await _configService.ExportConfigAsync(dialog.FileName);
+                var owner = GetOwnerWindow?.Invoke();
+                if (owner != null)
+                {
+                    Views.ConfirmDialog.ShowInfo(owner, "Export Complete", "Configuration has been exported successfully.");
+                }
+            }
+            catch
+            {
+                var owner = GetOwnerWindow?.Invoke();
+                if (owner != null)
+                {
+                    Views.ConfirmDialog.ShowInfo(owner, "Export Failed", "Failed to export configuration. Please check the file path and try again.");
+                }
+            }
+        }
+    }
+
+    private async Task ImportConfigAsync()
+    {
+        var owner = GetOwnerWindow?.Invoke();
+        if (owner == null) return;
+
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Import Configuration",
+            Filter = "Soundboard Config (*.json)|*.json",
+            DefaultExt = ".json"
+        };
+
+        if (dialog.ShowDialog() != true) return;
+
+        var confirmed = Views.ConfirmDialog.Show(
+            owner,
+            "Import Configuration",
+            "Are you sure you want to import this configuration?",
+            "This will replace all your current settings and tiles.\nThe app will restart to apply changes.",
+            confirmText: "Import",
+            cancelText: "Cancel",
+            isDangerous: true);
+
+        if (!confirmed) return;
+
+        var success = await _configService.ImportConfigAsync(dialog.FileName);
+
+        if (success)
+        {
+            Views.ConfirmDialog.ShowInfo(
+                owner,
+                "Restart Required",
+                "Configuration imported successfully. The application needs to restart to apply changes.");
+
+            OnFactoryReset?.Invoke();
+        }
+        else
+        {
+            Views.ConfirmDialog.ShowInfo(
+                owner,
+                "Import Failed",
+                "The selected file is not a valid Soundboard configuration file.");
         }
     }
 

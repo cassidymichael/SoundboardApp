@@ -96,3 +96,5 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 
 Note: Sound files are referenced by absolute path (not copied). User manages their own sound file organization.
 
+**Export/Import**: Settings > Advanced allows exporting the full configuration to a JSON file for backup or transfer. Import replaces current config and requires app restart.
+

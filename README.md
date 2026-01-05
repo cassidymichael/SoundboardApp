@@ -54,6 +54,8 @@ Settings are stored in `%AppData%\Soundboard\`:
 - `sounds-library.json` - Sounds library metadata
 - `Sounds/` folder - Copied sound files (when "Copy to library" is enabled)
 
+**Export/Import** - Use Settings > Advanced to export your configuration to a file for backup or transfer to another computer. Import restores settings and tile configurations (sound files must exist at the same paths).
+
 ---
 
 ## Development

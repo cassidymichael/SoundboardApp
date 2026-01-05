@@ -81,4 +81,29 @@ public class ConfigService : IConfigService
         await File.WriteAllTextAsync(_configFilePath, json);
     }
 
+    public async Task ExportConfigAsync(string filePath)
+    {
+        var json = JsonSerializer.Serialize(Config, JsonOptions);
+        await File.WriteAllTextAsync(filePath, json);
+    }
+
+    public async Task<bool> ImportConfigAsync(string filePath)
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var importedConfig = JsonSerializer.Deserialize<AppConfig>(json, JsonOptions);
+            if (importedConfig == null)
+                return false;
+
+            // Write the imported config to the app's config file
+            await File.WriteAllTextAsync(_configFilePath, json);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 }

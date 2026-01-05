@@ -9,4 +9,6 @@ public interface IConfigService
 
     Task LoadAsync();
     Task SaveAsync();
+    Task ExportConfigAsync(string filePath);
+    Task<bool> ImportConfigAsync(string filePath);
 }
