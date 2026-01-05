@@ -69,7 +69,7 @@ public partial class App : System.Windows.Application
             var configService = _serviceProvider!.GetRequiredService<IConfigService>();
             await configService.LoadAsync();
 
-            var soundsLibrary = _serviceProvider.GetRequiredService<ISoundsLibraryService>();
+            var soundsLibrary = _serviceProvider!.GetRequiredService<ISoundsLibraryService>();
             await soundsLibrary.LoadAsync();
 
             // Create main window

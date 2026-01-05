@@ -4,6 +4,8 @@
 param(
     [switch]$Portable,
     [switch]$Installer,
+    [switch]$Release,
+    [string]$ReleaseNotes,
     [switch]$All
 )
 
@@ -120,8 +122,59 @@ function New-Installer {
     Write-Host "Installer created in: $DistDir" -ForegroundColor Green
 }
 
+function New-GitHubRelease {
+    Write-Step "Creating GitHub release"
+
+    # Check gh CLI is available
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+        throw "GitHub CLI (gh) not found. Install from: https://cli.github.com/"
+    }
+
+    # Check we're authenticated
+    $authStatus = gh auth status 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Not authenticated with GitHub. Run: gh auth login"
+    }
+
+    $tag = "v$Version"
+    $zipPath = "$DistDir\Soundboard-$Version-portable.zip"
+    $installerPath = "$DistDir\SoundboardSetup-$Version.exe"
+
+    # Check files exist
+    if (-not (Test-Path $zipPath)) {
+        throw "Portable zip not found: $zipPath"
+    }
+    if (-not (Test-Path $installerPath)) {
+        throw "Installer not found: $installerPath"
+    }
+
+    # Build release notes
+    if (-not $ReleaseNotes) {
+        $ReleaseNotes = "Release $tag"
+    }
+
+    Write-Host "Creating release $tag..." -ForegroundColor Yellow
+
+    # Create release and upload assets
+    gh release create $tag $zipPath $installerPath `
+        --title $tag `
+        --notes $ReleaseNotes
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create GitHub release"
+    }
+
+    Write-Host "GitHub release created: $tag" -ForegroundColor Green
+    gh release view $tag --web
+}
+
 # Main
 Write-Host "Soundboard Publish Script v$Version" -ForegroundColor Yellow
+
+# -Release implies -All (need both portable and installer for release)
+if ($Release) {
+    $All = $true
+}
 
 if (-not ($Portable -or $Installer -or $All)) {
     $All = $true  # Default to building all
@@ -141,3 +194,7 @@ if ($Installer -or $All) {
 Write-Step "Publish complete!"
 Write-Host "Output files are in: $DistDir" -ForegroundColor Green
 Get-ChildItem $DistDir | ForEach-Object { Write-Host "  - $($_.Name)" }
+
+if ($Release) {
+    New-GitHubRelease
+}

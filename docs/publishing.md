@@ -8,6 +8,7 @@
 | Script (all) | `.\publish.ps1` | `dist\` folder |
 | Script (portable only) | `.\publish.ps1 -Portable` | `dist\Soundboard-x.x.x-portable.zip` |
 | Script (installer only) | `.\publish.ps1 -Installer` | `dist\SoundboardSetup-x.x.x.exe` |
+| Script + GitHub Release | `.\publish.ps1 -Release` | `dist\` + GitHub release |
 
 ## Distribution Formats
 
@@ -47,9 +48,32 @@ Output: `SoundboardApp\publish\Soundboard.exe`
 
 # Installer only
 .\publish.ps1 -Installer
+
+# Build and create GitHub release
+.\publish.ps1 -Release
+
+# With custom release notes
+.\publish.ps1 -Release -ReleaseNotes "- Fixed device dropdown issue"
 ```
 
 Version is read automatically from `<Version>` in `SoundboardApp.csproj`.
+
+### GitHub Releases
+
+The `-Release` flag creates a GitHub release after building:
+- Requires [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
+- Creates tag `vX.X.X` from the version in csproj
+- Uploads both portable zip and installer
+- Opens the release page in your browser
+
+First-time setup:
+```powershell
+# Install GitHub CLI (if not already installed)
+winget install GitHub.cli
+
+# Authenticate
+gh auth login
+```
 
 ### Output Files
 
