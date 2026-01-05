@@ -71,6 +71,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _clickToPlayEnabled = true;
 
+    [ObservableProperty]
+    private int _gridColumns = 4;
+
+    [ObservableProperty]
+    private int _gridRows = 4;
+
     public bool EditModeEnabled
     {
         get => !ClickToPlayEnabled;
@@ -152,6 +158,8 @@ public partial class MainViewModel : ObservableObject
 
         // Set UI settings
         ClickToPlayEnabled = _configService.Config.ClickToPlayEnabled;
+        GridColumns = _configService.Config.GridColumns;
+        GridRows = _configService.Config.GridRows;
 
         // Set selected devices (fallback to System Default for monitor, not None)
         SelectedMonitorDevice = OutputDevices.FirstOrDefault(d => d.Id == _configService.Config.MonitorDeviceId)
@@ -701,6 +709,92 @@ public partial class MainViewModel : ObservableObject
     public string ModeHelpText => ClickToPlayEnabled
         ? "Left-click tiles to play,\nright-click to edit"
         : "Left-click to edit,\nright-click to play";
+
+    /// <summary>
+    /// Gets the list of tiles that would be removed if the grid is resized.
+    /// Returns tiles with sounds that would be lost.
+    /// </summary>
+    public List<TileViewModel> GetTilesAffectedByResize(int newColumns, int newRows)
+    {
+        int newCount = newColumns * newRows;
+        var affected = new List<TileViewModel>();
+
+        if (newCount < Tiles.Count)
+        {
+            // Check tiles that would be removed
+            for (int i = newCount; i < Tiles.Count; i++)
+            {
+                if (Tiles[i].HasSound)
+                {
+                    affected.Add(Tiles[i]);
+                }
+            }
+        }
+
+        return affected;
+    }
+
+    /// <summary>
+    /// Applies the grid resize, adding or removing tiles as needed.
+    /// </summary>
+    public async Task ApplyGridResize(int newColumns, int newRows)
+    {
+        int newCount = newColumns * newRows;
+
+        // Remove excess tiles (from the end) BEFORE updating grid dimensions
+        while (Tiles.Count > newCount)
+        {
+            var tile = Tiles[Tiles.Count - 1];
+            tile.PropertyChanged -= OnTilePropertyChanged;
+
+            // Unregister hotkey if any
+            if (tile.Config.Hotkey != null)
+            {
+                _hotkeyService.UnregisterTileHotkey(tile.Index);
+            }
+
+            // Invalidate cache if sound was loaded
+            if (!string.IsNullOrEmpty(tile.Config.FilePath))
+            {
+                _audioCache.Invalidate(tile.Config.FilePath);
+            }
+
+            // Remove from collections
+            _configService.Config.Tiles.RemoveAt(Tiles.Count - 1);
+            Tiles.RemoveAt(Tiles.Count - 1);
+        }
+
+        // Add new tiles
+        while (Tiles.Count < newCount)
+        {
+            var tileConfig = new TileConfig
+            {
+                Index = Tiles.Count,
+                Name = $"Tile {Tiles.Count + 1}"
+            };
+            _configService.Config.Tiles.Add(tileConfig);
+
+            var tileVm = new TileViewModel(tileConfig, OnTileSelected, OnTilePlay, OnTileStop);
+            tileVm.PropertyChanged += OnTilePropertyChanged;
+            Tiles.Add(tileVm);
+        }
+
+        // Clear selection if selected tile was removed
+        if (SelectedTile != null && !Tiles.Contains(SelectedTile))
+        {
+            SelectedTile = null;
+            HasSelectedTile = false;
+        }
+
+        // Update grid dimensions AFTER tile collection is finalized
+        // This ensures UI bindings see consistent state
+        _configService.Config.GridColumns = newColumns;
+        _configService.Config.GridRows = newRows;
+        GridColumns = newColumns;
+        GridRows = newRows;
+
+        await _configService.SaveAsync();
+    }
 
     private void ShowStatus(string message)
     {

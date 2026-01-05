@@ -26,6 +26,19 @@
         <TextBlock x:Name="CopyrightText" Text="© 2024" Foreground="{StaticResource SecondaryTextBrush}"
                    HorizontalAlignment="Center" FontSize="11"/>
 
+        <!-- GitHub Link -->
+        <TextBlock HorizontalAlignment="Center" Margin="0,12,0,0">
+            <Hyperlink NavigateUri="https://github.com/cassidymichael/SoundboardApp"
+                       RequestNavigate="Hyperlink_RequestNavigate"
+                       Foreground="{StaticResource PrimaryBrush}">
+                github.com/cassidymichael/SoundboardApp
+            </Hyperlink>
+        </TextBlock>
+
+        <!-- License -->
+        <TextBlock Text="MIT License" Foreground="{StaticResource SecondaryTextBrush}"
+                   HorizontalAlignment="Center" FontSize="11" Margin="0,4,0,0"/>
+
         <!-- OK Button -->
         <Button Content="OK" Width="80" Margin="0,20,0,0" Click="OkButton_Click"/>
     </StackPanel>

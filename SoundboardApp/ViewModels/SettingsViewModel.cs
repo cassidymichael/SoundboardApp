@@ -12,6 +12,7 @@ namespace Soundboard.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly IConfigService _configService;
+    private readonly MainViewModel _mainViewModel;
     private const string StartupRegistryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
     private const string AppName = "Soundboard";
 
@@ -20,14 +21,19 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private SettingsCategory? _selectedCategory;
 
+    // Grid layout settings (stored for resize confirmation)
+    private ChoiceSetting<int>? _gridColumnsSetting;
+    private ChoiceSetting<int>? _gridRowsSetting;
+
     // Callbacks for window management
     public Action<bool>? RequestClose { get; set; }
     public Action? OnFactoryReset { get; set; }
     public Func<Window>? GetOwnerWindow { get; set; }
 
-    public SettingsViewModel(IConfigService configService)
+    public SettingsViewModel(IConfigService configService, MainViewModel mainViewModel)
     {
         _configService = configService;
+        _mainViewModel = mainViewModel;
         BuildCategories();
         LoadAllSettings();
         InitializeSettingDependencies();
@@ -100,6 +106,38 @@ public partial class SettingsViewModel : ObservableObject
 
         Categories.Add(general);
 
+        // Grid Layout category
+        var gridLayout = new SettingsCategory { Name = "Grid Layout" };
+
+        // Options for 1-8 columns/rows
+        var gridSizeOptions = Enumerable.Range(1, 8)
+            .Select(i => new ChoiceOption<int>(i, i.ToString()))
+            .ToList();
+
+        _gridColumnsSetting = new ChoiceSetting<int>
+        {
+            Key = "GridColumns",
+            Title = "Columns",
+            Description = "Number of columns in the tile grid",
+            Getter = c => c.GridColumns,
+            Setter = (c, v) => { } // Handled in SaveAsync
+        };
+        foreach (var opt in gridSizeOptions) _gridColumnsSetting.Options.Add(opt);
+
+        _gridRowsSetting = new ChoiceSetting<int>
+        {
+            Key = "GridRows",
+            Title = "Rows",
+            Description = "Number of rows in the tile grid",
+            Getter = c => c.GridRows,
+            Setter = (c, v) => { } // Handled in SaveAsync
+        };
+        foreach (var opt in gridSizeOptions) _gridRowsSetting.Options.Add(opt);
+
+        gridLayout.Settings.Add(_gridColumnsSetting);
+        gridLayout.Settings.Add(_gridRowsSetting);
+        Categories.Add(gridLayout);
+
         // Advanced category
         var advanced = new SettingsCategory { Name = "Advanced" };
         advanced.Settings.Add(new ActionSetting
@@ -135,11 +173,64 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveAsync()
     {
-        // Apply all settings to config
+        // Check for grid resize before applying
+        if (_gridColumnsSetting != null && _gridRowsSetting != null)
+        {
+            int newColumns = _gridColumnsSetting.SelectedValue;
+            int newRows = _gridRowsSetting.SelectedValue;
+            int currentColumns = _configService.Config.GridColumns;
+            int currentRows = _configService.Config.GridRows;
+
+            // Check if grid dimensions changed
+            if (newColumns != currentColumns || newRows != currentRows)
+            {
+                var affectedTiles = _mainViewModel.GetTilesAffectedByResize(newColumns, newRows);
+
+                if (affectedTiles.Count > 0)
+                {
+                    // Show confirmation dialog
+                    var owner = GetOwnerWindow?.Invoke();
+                    if (owner == null)
+                    {
+                        // Cannot show dialog - restore values and abort
+                        _gridColumnsSetting.SelectedValue = currentColumns;
+                        _gridRowsSetting.SelectedValue = currentRows;
+                        return;
+                    }
+
+                    var tileNames = string.Join("\n", affectedTiles.Select(t => $"  - {t.Name}"));
+                    var confirmed = Views.ConfirmDialog.Show(
+                        owner,
+                        "Resize Grid",
+                        $"This will remove {affectedTiles.Count} tile(s) with sounds assigned:",
+                        tileNames,
+                        confirmText: "Remove Tiles",
+                        cancelText: "Cancel",
+                        isDangerous: true);
+
+                    if (!confirmed)
+                    {
+                        // Restore original values
+                        _gridColumnsSetting.SelectedValue = currentColumns;
+                        _gridRowsSetting.SelectedValue = currentRows;
+                        return;
+                    }
+                }
+
+                // Apply grid resize
+                await _mainViewModel.ApplyGridResize(newColumns, newRows);
+            }
+        }
+
+        // Apply all other settings to config
         foreach (var category in Categories)
         {
             foreach (var setting in category.Settings)
             {
+                // Skip grid settings - already handled above
+                if (setting.Key == "GridColumns" || setting.Key == "GridRows")
+                    continue;
+
                 setting.ApplyToConfig(_configService.Config);
             }
         }
@@ -212,6 +303,9 @@ public partial class SettingsViewModel : ObservableObject
         // Reset UI settings
         _configService.Config.ClickToPlayEnabled = defaultConfig.ClickToPlayEnabled;
 
+        // Note: Grid dimensions are NOT reset by "Reset to Defaults"
+        // to avoid accidentally removing tiles with sounds
+
         // Reset startup settings
         _configService.Config.StartWithWindows = defaultConfig.StartWithWindows;
         _configService.Config.StartMinimized = defaultConfig.StartMinimized;
@@ -275,6 +369,8 @@ public partial class SettingsViewModel : ObservableObject
         _configService.Config.CloseToTray = freshConfig.CloseToTray;
         _configService.Config.StopCurrentHotkey = freshConfig.StopCurrentHotkey;
         _configService.Config.StopAllHotkey = freshConfig.StopAllHotkey;
+        _configService.Config.GridColumns = freshConfig.GridColumns;
+        _configService.Config.GridRows = freshConfig.GridRows;
 
         // Reset all tiles
         _configService.Config.Tiles.Clear();

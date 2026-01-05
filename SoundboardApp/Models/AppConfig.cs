@@ -19,6 +19,10 @@ public class AppConfig
     public bool StartMinimized { get; set; } = false;
     public bool CloseToTray { get; set; } = false;
 
+    // Grid layout
+    public int GridColumns { get; set; } = 4;
+    public int GridRows { get; set; } = 4;
+
     // Global hotkeys
     public HotkeyBinding? StopCurrentHotkey { get; set; }
     public HotkeyBinding? StopAllHotkey { get; set; }
@@ -30,8 +34,9 @@ public class AppConfig
     {
         var config = new AppConfig();
 
-        // Create 16 empty tiles
-        for (int i = 0; i < 16; i++)
+        // Create tiles based on grid dimensions
+        int tileCount = config.GridColumns * config.GridRows;
+        for (int i = 0; i < tileCount; i++)
         {
             config.Tiles.Add(new TileConfig
             {

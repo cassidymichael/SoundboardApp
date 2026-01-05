@@ -51,14 +51,27 @@ public class ConfigService : IConfigService
             await SaveAsync();
         }
 
-        // Ensure we have 16 tiles
-        while (Config.Tiles.Count < 16)
+        // Ensure grid dimensions are valid
+        Config.GridColumns = Math.Clamp(Config.GridColumns, 1, 8);
+        Config.GridRows = Math.Clamp(Config.GridRows, 1, 8);
+
+        // Ensure tile count matches grid dimensions
+        int expectedTileCount = Config.GridColumns * Config.GridRows;
+
+        // Add missing tiles
+        while (Config.Tiles.Count < expectedTileCount)
         {
             Config.Tiles.Add(new TileConfig
             {
                 Index = Config.Tiles.Count,
                 Name = $"Tile {Config.Tiles.Count + 1}"
             });
+        }
+
+        // Remove excess tiles (from the end)
+        while (Config.Tiles.Count > expectedTileCount)
+        {
+            Config.Tiles.RemoveAt(Config.Tiles.Count - 1);
         }
     }
 
