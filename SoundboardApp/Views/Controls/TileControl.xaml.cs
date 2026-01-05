@@ -64,12 +64,27 @@ public partial class TileControl : System.Windows.Controls.UserControl
 
     private void OnRightClick(object sender, MouseButtonEventArgs e)
     {
-        // Right-click always selects the tile for editing
-        if (DataContext is TileViewModel vm)
+        if (DataContext is not TileViewModel vm) return;
+
+        var mainWindow = Window.GetWindow(this);
+        if (mainWindow?.DataContext is MainViewModel mainVm)
+        {
+            if (!mainVm.ClickToPlayEnabled && vm.HasSound)
+            {
+                // Edit mode - right-click plays sound (shortcut)
+                vm.PlayCommand.Execute(null);
+            }
+            else
+            {
+                // Play mode or no sound - select tile for editing
+                vm.SelectCommand.Execute(null);
+            }
+        }
+        else
         {
             vm.SelectCommand.Execute(null);
-            e.Handled = true;
         }
+        e.Handled = true;
     }
 
     private void OnTileButtonClick(object sender, RoutedEventArgs e)
@@ -94,7 +109,8 @@ public partial class TileControl : System.Windows.Controls.UserControl
         {
             if (mainVm.ClickToPlayEnabled && vm.HasSound)
             {
-                // Click to play mode - play the sound
+                // Click to play mode - play the sound and select for settings panel
+                vm.SelectCommand.Execute(null);
                 vm.PlayCommand.Execute(null);
             }
             else

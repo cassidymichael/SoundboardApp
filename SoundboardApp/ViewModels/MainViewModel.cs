@@ -700,7 +700,7 @@ public partial class MainViewModel : ObservableObject
 
     public string ModeHelpText => ClickToPlayEnabled
         ? "Left-click tiles to play,\nright-click to edit"
-        : "Left-click tiles to edit";
+        : "Left-click to edit,\nright-click to play";
 
     private void ShowStatus(string message)
     {
