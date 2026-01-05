@@ -12,6 +12,7 @@ Download the latest release from the [Releases](https://github.com/cassidymichae
 
 - **Sounds Library** - Centralized sound management with search and organization
 - **Tile Grid** - Customizable grid (1-8 rows/columns), assign sounds to tiles
+- **Tile Colors** - Customize tile background colors from 12 preset colors
 - **Global Hotkeys** - Trigger sounds while inside other applications
 - **Dual Output** - Play to monitor and inject (virtual mic) simultaneously
 
@@ -38,6 +39,7 @@ To route soundboard audio into apps like Discord, Teams, or streaming software, 
 - **Select Sound** - Pick from library or browse for file
 - **Set** - Press a key to assign hotkey
 - **Volume slider** - Per-tile volume
+- **Tile Color** - Choose from 12 preset colors to customize tile appearance
 - **Stop other sounds** - When enabled, stops any other currently playing tiles when this tile is triggered.
 - **Can't be stopped** - When enabled, prevents other tiles' "stop other sounds" control from applying to this tile.
 

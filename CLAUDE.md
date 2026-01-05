@@ -35,7 +35,8 @@ SoundboardApp/
 - `Services/AudioEngine.cs` - Dual output buses, voice mixing, fade envelopes
 - `Services/HotkeyService.cs` - Global hotkey registration via Win32
 - `ViewModels/MainViewModel.cs` - Central coordinator, tile/device management
-- `Models/TileConfig.cs` - Per-tile settings (sound, hotkey, volume, behavior)
+- `Models/TileConfig.cs` - Per-tile settings (sound, hotkey, volume, behavior, color)
+- `Models/PresetColor.cs` - 12 preset tile color options
 
 ## Architecture
 - Config persists to `%AppData%\Soundboard\config.json`

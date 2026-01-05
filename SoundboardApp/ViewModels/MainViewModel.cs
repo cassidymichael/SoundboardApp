@@ -28,6 +28,7 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<TileViewModel> Tiles { get; } = new();
     public ObservableCollection<AudioDevice> OutputDevices { get; } = new();
+    public ObservableCollection<PresetColor> PresetColors { get; } = new();
 
     [ObservableProperty]
     private TileViewModel? _selectedTile;
@@ -134,6 +135,12 @@ public partial class MainViewModel : ObservableObject
 
     private void Initialize()
     {
+        // Initialize preset colors
+        foreach (var preset in PresetColor.GetDefaults())
+        {
+            PresetColors.Add(preset);
+        }
+
         // Load devices
         RefreshDevices();
 
@@ -218,6 +225,9 @@ public partial class MainViewModel : ObservableObject
         SelectedTile = tile;
         tile.IsSelected = true;
         HasSelectedTile = true;
+
+        // Update preset color selection to match tile's color
+        UpdatePresetColorSelection(tile.GetBackgroundColor());
 
         // Cancel hotkey learning if active
         if (_isLearningHotkey)
@@ -499,6 +509,27 @@ public partial class MainViewModel : ObservableObject
         StopAllHotkeyDisplay = "";
         _ = _configService.SaveAsync();
         ShowStatus("Stop All hotkey cleared");
+    }
+
+    [RelayCommand]
+    private async Task SetTileColor(string? hexColor)
+    {
+        if (SelectedTile == null) return;
+
+        SelectedTile.SetBackgroundColor(hexColor);
+        UpdatePresetColorSelection(hexColor);
+        await _configService.SaveAsync();
+    }
+
+    private void UpdatePresetColorSelection(string? hexColor)
+    {
+        // If no custom color, select the default Blue preset
+        var effectiveColor = hexColor ?? "#FF3498DB";
+
+        foreach (var preset in PresetColors)
+        {
+            preset.IsSelected = string.Equals(preset.HexColor, effectiveColor, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [RelayCommand]

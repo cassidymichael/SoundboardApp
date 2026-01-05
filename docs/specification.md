@@ -92,7 +92,7 @@ Windows soundboard application for real-time use in games, Discord, Microsoft Te
 - Device IDs (monitor, inject)
 - Master volumes
 - Hotkey bindings (16 tiles + stop all)
-- Tile configs (name, absolute file path, volume, stopOthers, protected)
+- Tile configs (name, absolute file path, volume, stopOthers, protected, backgroundColor)
 
 Note: Sound files are referenced by absolute path (not copied). User manages their own sound file organization.
 

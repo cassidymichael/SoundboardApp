@@ -7,10 +7,10 @@
              d:DesignHeight="100" d:DesignWidth="100">
 
     <UserControl.Resources>
-        <!-- Main tile button style -->
+        <!-- Main tile button style with customizable colors -->
         <Style x:Key="TileButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{Binding BackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{Binding TextBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -23,20 +23,26 @@
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <!-- Hover effect -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryLightBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{Binding HoverBrush}"/>
                             </Trigger>
+                            <!-- Pressed effect -->
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryDarkerBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{Binding PressedBrush}"/>
                             </Trigger>
+                            <!-- Selection border -->
                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                 <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                             </DataTrigger>
+                            <!-- Playing state: lighter variant of tile color -->
                             <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="{Binding PlayingBrush}"/>
                             </DataTrigger>
+                            <!-- Empty state: always gray (must be last to override hover/pressed) -->
                             <DataTrigger Binding="{Binding HasSound}" Value="False">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource EmptyTileBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

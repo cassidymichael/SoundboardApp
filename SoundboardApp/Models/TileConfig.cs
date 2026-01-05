@@ -22,4 +22,10 @@ public class TileConfig
     public bool StopOthers { get; set; }
     public bool Protected { get; set; }
     public HotkeyBinding? Hotkey { get; set; }
+
+    /// <summary>
+    /// Custom background color in hex format (e.g., "#FF3498DB").
+    /// Null means use the default blue color.
+    /// </summary>
+    public string? BackgroundColor { get; set; }
 }
